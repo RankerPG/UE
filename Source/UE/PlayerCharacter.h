@@ -40,6 +40,7 @@ public:
 
 public:
 	void Fireball();
+	bool CollisionCheck(FHitResult& resultOut);
 
 private:
 	UPROPERTY(category = Camera, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))

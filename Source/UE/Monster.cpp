@@ -1,6 +1,7 @@
 #include "Monster.h"
 #include "MonsterAnimInstance.h"
 #include "SpawnPoint.h"
+#include "UEGameInstance.h"
 
 AMonster::AMonster()
 {
@@ -41,6 +42,30 @@ void AMonster::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 }
 
+void AMonster::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	FMonsterInfo* info = Cast<UUEGameInstance>(GetGameInstance())->FindMonsterInfo(*m_strMonsterName);
+
+	if (nullptr != info)
+	{
+		m_fTraceRange = info->TraceRange;
+		m_fAttackRange = info->AttackRange;
+		m_fAttackPoint = info->AttackPoint;
+		m_fArmorPoint = info->ArmorPoint;
+		m_fHP = m_fMaxHP = info->HP;
+		m_fMP = m_fMaxMP = info->MP;
+		m_iLevel = info->Level;
+		m_iExp = info->Exp;
+		m_iGold = info->Gold;
+	}
+}
+
+void AMonster::UnPossessed()
+{
+}
+
 float AMonster::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
 {
 	float fDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
@@ -74,7 +99,11 @@ void AMonster::CollsionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor
 {
 	m_pAnim->Set_AnimName(TEXT("Hit"));
 
-	LOG(Warning, TEXT("Hit!!"));
+	FDamageEvent event;
+
+	TakeDamage(150.f, event, GetController(), this);
+
+	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Blue, TEXT("Fire ball Hit"));
 }
 
 void AMonster::Death()

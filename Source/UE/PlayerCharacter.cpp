@@ -54,7 +54,7 @@ APlayerCharacter::APlayerCharacter()
 
 	m_fAttackRange = 500.f;
 
-	m_fAttackPoint = 50.f;
+	m_fAttackPoint = 20.f;
 }
 
 void APlayerCharacter::BeginPlay()
@@ -124,6 +124,8 @@ void APlayerCharacter::Mouse_Wheel(float fScale)
 	m_pSpringArm->TargetArmLength -= fScale * 25.f;
 
 	m_pSpringArm->TargetArmLength = m_pSpringArm->TargetArmLength < 100.f ? 100.f : m_pSpringArm->TargetArmLength;
+	
+	
 }
 
 void APlayerCharacter::Action_Jump()
@@ -138,37 +140,6 @@ void APlayerCharacter::Action_Attack()
 	m_pAnim->Set_AnimType(EPlayerAnimType::Attack);
 
 	m_pAnim->Set_AttackType();
-
-	FHitResult result;
-
-	FCollisionQueryParams tParams(NAME_None, false, this);
-
-	bool bCollision = GetWorld()->SweepSingleByChannel(result, GetActorLocation(), GetActorLocation() + GetActorForwardVector() * m_fAttackRange, FQuat::Identity
-		, (ECollisionChannel)CollisionPlayerAttack, FCollisionShape::MakeSphere(30.f), tParams);
-
-#if ENABLE_DRAW_DEBUG
-
-	FVector vCenter = GetActorLocation() + GetActorForwardVector() * (m_fAttackRange / 2.f);
-
-	FColor DrawColor = bCollision ? FColor::Red : FColor::Green;
-
-	DrawDebugCapsule(GetWorld(), vCenter, m_fAttackRange / 2.f, 30.f, FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat(), DrawColor, false, 2.f);
-#endif
-
-	if (bCollision)
-	{
-		FDamageEvent tEvent;
-
-		result.GetActor()->TakeDamage(m_fAttackPoint, tEvent, GetController(), this);
-
-		FActorSpawnParameters tSpawnParams;
-
-		tSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
-		auto HitEffect = GetWorld()->SpawnActor<ASkillEffect>(result.ImpactPoint, result.ImpactNormal.Rotation(), tSpawnParams);
-
-		HitEffect->Load_Particle(TEXT("ParticleSystem'/Game/AdvancedMagicFX12/particles/P_ky_hit_water.P_ky_hit_water'"));
-	}
 }
 
 void APlayerCharacter::Drop_Weapon()
@@ -202,4 +173,38 @@ void APlayerCharacter::Fireball()
 	{
 		pMovement->Velocity = GetActorForwardVector() * pMovement->InitialSpeed;
 	}
+}
+
+bool APlayerCharacter::CollisionCheck(FHitResult& resultOut)
+{
+	FCollisionQueryParams tParams(NAME_None, false, this);
+
+	bool bCollision = GetWorld()->SweepSingleByChannel(resultOut, GetActorLocation(), GetActorLocation() + GetActorForwardVector() * m_fAttackRange, FQuat::Identity
+		, (ECollisionChannel)CollisionPlayerAttack, FCollisionShape::MakeSphere(30.f), tParams);
+
+#if ENABLE_DRAW_DEBUG
+
+	FVector vCenter = GetActorLocation() + GetActorForwardVector() * (m_fAttackRange / 2.f);
+
+	FColor DrawColor = bCollision ? FColor::Red : FColor::Green;
+
+	DrawDebugCapsule(GetWorld(), vCenter, m_fAttackRange / 2.f, 30.f, FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat(), DrawColor, false, 2.f);
+#endif
+
+	if (bCollision)
+	{
+		FDamageEvent tEvent;
+
+		resultOut.GetActor()->TakeDamage(m_fAttackPoint, tEvent, GetController(), this);
+
+		FActorSpawnParameters tSpawnParams;
+
+		tSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+		auto HitEffect = GetWorld()->SpawnActor<ASkillEffect>(resultOut.ImpactPoint, resultOut.ImpactNormal.Rotation(), tSpawnParams);
+
+		HitEffect->Load_Particle(TEXT("ParticleSystem'/Game/AdvancedMagicFX12/particles/P_ky_hit_water.P_ky_hit_water'"));
+	}
+
+	return bCollision;
 }

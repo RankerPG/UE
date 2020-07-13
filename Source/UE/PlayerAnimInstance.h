@@ -16,6 +16,7 @@ public:
 
 	void Set_AttackType();
 
+public:
 	UFUNCTION()
 	void AnimNotify_AttackToIdle();
 
@@ -27,6 +28,9 @@ public:
 
 	UFUNCTION()
 	void AnimNotify_Fireball();
+
+	UFUNCTION()
+	void AnimNotify_CollisionCheck();
 
 public:
 	UPlayerAnimInstance();
@@ -64,8 +68,11 @@ protected:
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	int32 m_iAttack;
 
-	bool m_isAttackEnable;
+	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	int32 m_iDir;
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	bool m_isFalling;
+
+	bool m_isAttackEnable;
 };

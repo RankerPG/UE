@@ -43,6 +43,16 @@ enum class EJumpType : uint8
 };
 
 UENUM(BlueprintType)
+enum class EMonsterAnimType : uint8
+{
+	Idle,
+	Run,
+	Attack,
+	Hit,
+	Death,
+};
+
+UENUM(BlueprintType)
 enum ECollisionChannelConvert
 {
 	CollisionNone,

@@ -15,6 +15,10 @@ private:
 public:
 	AMonster();
 
+public:
+	float Get_TraceRange() { return m_fTraceRange; }
+	float Get_AttackRange() { return m_fAttackRange; }
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
@@ -23,6 +27,9 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void UnPossessed() override;
 
 public:
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser);
@@ -38,6 +45,12 @@ protected:
 	class ASpawnPoint* m_pSpawnPoint;
 
 	class UMonsterAnimInstance* m_pAnim;
+
+	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	FString m_strMonsterName;
+
+	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float m_fTraceRange;
 
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float m_fAttackRange;

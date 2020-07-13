@@ -1,5 +1,6 @@
 #include "Minion.h"
 #include "MonsterAnimInstance.h"
+#include "MinionAIController.h"
 
 AMinion::AMinion()
 {
@@ -17,14 +18,12 @@ AMinion::AMinion()
 		GetMesh()->SetAnimClass(AnimFinder.Class);
 	}
 
-	m_fAttackRange = 50.f;
-	m_fAttackPoint = 10.f;
-	m_fArmorPoint = 10.f;
-	m_fHP = m_fMaxHP = 100.f;
-	m_fMP = m_fMaxMP = 50.f;
-	m_iLevel = 1;
-	m_iExp = 100;
-	m_iGold = 1000;
+	m_strMonsterName = TEXT("Minion");
+
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+	AIControllerClass = AMinionAIController::StaticClass();
+
+	LOG(Warning, TEXT("Constructor Call"));
 }
 
 void AMinion::BeginPlay()
