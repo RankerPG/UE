@@ -9,8 +9,9 @@
 #include "Monster.h"
 
 FName AMonsterAIController::m_TargetKey(TEXT("Target"));
-FName AMonsterAIController::m_AttackRangeKey(TEXT("AttackRange"));
 FName AMonsterAIController::m_TraceRangeKey(TEXT("TraceRange"));
+FName AMonsterAIController::m_AttackRangeKey(TEXT("AttackRange"));
+FName AMonsterAIController::m_AttackEnableKey(TEXT("AttackEnable"));
 
 AMonsterAIController::AMonsterAIController()
 {

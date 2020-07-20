@@ -59,7 +59,7 @@ enum ECollisionChannelConvert
 	CollisionPlayer = ECC_GameTraceChannel1,
 	CollisionMonster,
 	CollisionPlayerAttack,
-	Collsion4,
+	CollisionMonsterDetect,
 	Collsion5,
 	Collsion6,
 	Collsion7,

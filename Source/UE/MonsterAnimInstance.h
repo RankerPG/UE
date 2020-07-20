@@ -18,7 +18,7 @@ private:
 	virtual void NativeUpdateAnimation(float DeltaSeconds);
 
 	UFUNCTION()
-	void AnimNotify_HitToIdle();
+	void AnimNotify_ActionToIdle();
 
 	UFUNCTION()
 	void AnimNotify_DeathEnd();

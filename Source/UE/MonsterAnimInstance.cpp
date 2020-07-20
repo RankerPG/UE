@@ -31,19 +31,18 @@ void UMonsterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	if (IsValid(pMonster))
 	{
+		if (m_strArray[(int)EMonsterAnimType::Death] == m_strCurrentAnimType)
+			return;
+
 		float fSpeed = pMonster->GetVelocity().Size();
 
-		if (m_strArray[(int)EMonsterAnimType::Attack] == m_strCurrentAnimType)
+		if (0.f < fSpeed)
 		{
-
+			m_strCurrentAnimType = m_strArray[(int)EMonsterAnimType::Run];
 		}
 		else
 		{
-			if (0 < fSpeed)
-			{
-				m_strCurrentAnimType = m_strArray[(int)EMonsterAnimType::Run];
-			}
-			else
+			if (m_strRun == m_strCurrentAnimType)
 			{
 				m_strCurrentAnimType = m_strArray[(int)EMonsterAnimType::Idle];
 			}
@@ -51,7 +50,7 @@ void UMonsterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	}
 }
 
-void UMonsterAnimInstance::AnimNotify_HitToIdle()
+void UMonsterAnimInstance::AnimNotify_ActionToIdle()
 {
 	m_strCurrentAnimType = m_strArray[(int)EMonsterAnimType::Idle];
 }

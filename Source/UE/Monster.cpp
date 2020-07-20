@@ -13,6 +13,20 @@ AMonster::AMonster()
 	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AMonster::CollsionHit);
 
 	m_pAnim = nullptr;
+
+	m_iPatrolNum = 0;
+}
+
+const FVector& AMonster::NextPatrolPos()
+{
+	m_iPatrolNum = (++m_iPatrolNum) % m_PatrolPosArray.Num();
+
+	return m_PatrolPosArray[m_iPatrolNum];
+}
+
+void AMonster::Set_AnimSequence(const FString& strAnim)
+{
+	m_pAnim->Set_AnimName(strAnim);
 }
 
 void AMonster::BeginPlay()
@@ -97,13 +111,7 @@ float AMonster::TakeDamage(float DamageAmount, struct FDamageEvent const& Damage
 
 void AMonster::CollsionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	m_pAnim->Set_AnimName(TEXT("Hit"));
-
-	FDamageEvent event;
-
-	TakeDamage(150.f, event, GetController(), this);
-
-	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Blue, TEXT("Fire ball Hit"));
+	
 }
 
 void AMonster::Death()

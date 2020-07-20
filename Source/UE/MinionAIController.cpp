@@ -34,7 +34,7 @@ void AMinionAIController::OnPossess(APawn* InPawn)
 
 		if (!RunBehaviorTree(m_pBT))
 		{
-			;
+			
 		}
 	}
 }

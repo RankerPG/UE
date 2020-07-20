@@ -18,6 +18,16 @@ public:
 public:
 	float Get_TraceRange() { return m_fTraceRange; }
 	float Get_AttackRange() { return m_fAttackRange; }
+	float Get_HP() { return m_fHP; }
+	int32 Get_PatrolNum() { return m_iPatrolNum; }
+	const FVector& Get_PatrolPos() { return m_PatrolPosArray[m_iPatrolNum]; }
+	const FVector& NextPatrolPos();
+	bool Get_PatrolEnable() { return m_bPatrolEnable; }
+
+	void Set_AnimSequence(const FString& strAnim);
+	void Set_PatrolEnable(bool bPatrolEnable) { m_bPatrolEnable = bPatrolEnable; }
+	UFUNCTION(BlueprintCallable)
+	void Add_PatrolPos(const FVector& vPos) { m_PatrolPosArray.Add(vPos); }
 
 protected:
 	virtual void BeginPlay() override;
@@ -45,6 +55,14 @@ protected:
 	class ASpawnPoint* m_pSpawnPoint;
 
 	class UMonsterAnimInstance* m_pAnim;
+
+	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	TArray<FVector> m_PatrolPosArray;
+
+	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	int32 m_iPatrolNum;
+
+	bool m_bPatrolEnable;
 
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	FString m_strMonsterName;

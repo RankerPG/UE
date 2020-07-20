@@ -43,4 +43,5 @@ public:
 	static FName m_TargetKey;
 	static FName m_TraceRangeKey;
 	static FName m_AttackRangeKey;
+	static FName m_AttackEnableKey;
 };

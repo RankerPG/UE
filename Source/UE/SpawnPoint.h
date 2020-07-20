@@ -29,6 +29,9 @@ private:
 	UPROPERTY(category = Spawn, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<AMonster> m_MonsterClass;
 
+	UPROPERTY(category = Spawn, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	TArray<class APoint*> m_PointArray;
+
 	FTimerHandle m_TimerHandler;
 
 	float m_fSpawnTime;

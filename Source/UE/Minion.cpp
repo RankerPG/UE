@@ -22,8 +22,6 @@ AMinion::AMinion()
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	AIControllerClass = AMinionAIController::StaticClass();
-
-	LOG(Warning, TEXT("Constructor Call"));
 }
 
 void AMinion::BeginPlay()

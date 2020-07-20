@@ -1,4 +1,5 @@
 #include "SpawnPoint.h"
+#include "Point.h"
 
 ASpawnPoint::ASpawnPoint()
 {
@@ -17,7 +18,6 @@ void ASpawnPoint::BeginPlay()
 void ASpawnPoint::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 void ASpawnPoint::SpawnMonster()
@@ -34,6 +34,21 @@ void ASpawnPoint::SpawnMonster()
 	if (IsValid(pMonster))
 	{
 		pMonster->m_pSpawnPoint = this;
+
+		if (0 < m_PointArray.Num())
+		{
+			pMonster->Add_PatrolPos(GetActorLocation());
+			pMonster->Set_PatrolEnable(true);
+
+			for (APoint* pPoint : m_PointArray)
+			{
+				pMonster->Add_PatrolPos(pPoint->GetActorLocation());
+			}
+		}
+		else
+		{
+			pMonster->Set_PatrolEnable(false);
+		}
 	}
 
 	GetWorldTimerManager().ClearTimer(m_TimerHandler);

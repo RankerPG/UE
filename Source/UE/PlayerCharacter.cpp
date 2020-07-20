@@ -19,8 +19,8 @@ APlayerCharacter::APlayerCharacter()
 		GetMesh()->SetSkeletalMesh(MeshFinder.Object);
 	}
 	
-	GetMesh()->RelativeLocation.Z = -88.f;
-	GetMesh()->RelativeRotation.Yaw = -90.f;
+	GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -88.f));
+	GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 
 	ConstructorHelpers::FClassFinder<UPlayerAnimInstance> ClassFinder(TEXT("AnimBlueprint'/Game/Player/BP_Anim.BP_Anim_C'"));
 
@@ -41,6 +41,7 @@ APlayerCharacter::APlayerCharacter()
 	m_pSpringArm->SetRelativeRotation(FRotator(-20.f, 0.f, 0.f));
 
 	GetCharacterMovement()->JumpZVelocity = 600.f;
+	GetCharacterMovement()->MaxWalkSpeed = 1000.f;
 
 	//
 	m_pWeapon = nullptr;
@@ -55,6 +56,8 @@ APlayerCharacter::APlayerCharacter()
 	m_fAttackRange = 500.f;
 
 	m_fAttackPoint = 20.f;
+
+	GetCapsuleComponent()->SetCollisionProfileName(TEXT("Player"));
 }
 
 void APlayerCharacter::BeginPlay()
