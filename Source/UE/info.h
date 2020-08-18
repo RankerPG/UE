@@ -43,6 +43,20 @@ enum class EJumpType : uint8
 };
 
 UENUM(BlueprintType)
+enum class ERunType : uint8
+{
+	RunNone,
+	RunFront,
+	RunFrontLeft,
+	RunFrontRight,
+	RunBack,
+	RunBackLeft,
+	RunBackRight,
+	RunLeft,
+	RunRight,
+};
+
+UENUM(BlueprintType)
 enum class EMonsterAnimType : uint8
 {
 	Idle,

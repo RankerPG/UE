@@ -13,13 +13,20 @@ public:
 	AMinion();
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	virtual void PossessedBy(AController* NewController) override;
+
+public:
+	void Shot_Bullet();
+
+private:
+	UClass* m_BulletClass;
+
+	USkeletalMeshComponent* m_pMesh;
 };

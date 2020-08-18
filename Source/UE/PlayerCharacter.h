@@ -26,7 +26,7 @@ public:
 
 public:
 	//Axis
-	void Move_Foward(float fScale);
+	void Move_Forward(float fScale);
 	void Move_Side(float fScale);
 	void Mouse_X(float fScale);
 	void Mouse_Y(float fScale);
@@ -40,7 +40,7 @@ public:
 
 public:
 	void Fireball();
-	bool CollisionCheck(FHitResult& resultOut);
+	bool CollisionCheck(TArray<FHitResult>& resultOut);
 
 private:
 	UPROPERTY(category = Camera, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))

@@ -4,6 +4,7 @@
 #include "SkillProjectile.h"
 #include "SkillEffect.h"
 
+
 // Sets default values
 ASkillProjectile::ASkillProjectile()
 {

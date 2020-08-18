@@ -12,9 +12,15 @@ class UE_API UPlayerAnimInstance : public UAnimInstance
 	GENERATED_BODY()
 
 public:
+	FString Get_AnimType() { return m_strCurrentAnimType; }
+
+	ERunType Get_RunType() { return m_eRunType; }
+
 	void Set_AnimType(EPlayerAnimType eAnimType) { m_strCurrentAnimType = m_strArray[(int)eAnimType]; }
 
 	void Set_AttackType();
+
+	void Set_RunType(ERunType eRunType) { m_eRunType = eRunType; }
 
 public:
 	UFUNCTION()
@@ -70,6 +76,9 @@ protected:
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	int32 m_iDir;
+
+	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	ERunType m_eRunType;
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	bool m_isFalling;

@@ -58,6 +58,10 @@ void UBTTask_Patrol::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemo
 	if (pMonster->Get_HP() > 0.f)
 	{
 		UAIBlueprintHelperLibrary::SimpleMoveToLocation(pController, vPatrolPos);
+
+		FVector vel = pMonster->GetVelocity();
+
+		LOG(Warning, TEXT("%f, %f, %f"), vel.X, vel.Y, vel.Z);
 	}
 
 	FVector vPos = pMonster->GetMesh()->GetComponentLocation();
@@ -68,7 +72,7 @@ void UBTTask_Patrol::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemo
 	{
 		pController->StopMovement();
 
-		pMonster->NextPatrolPos();
+		pMonster->Get_NextPatrolPos();
 
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 	}

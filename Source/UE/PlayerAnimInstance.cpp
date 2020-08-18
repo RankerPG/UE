@@ -27,6 +27,8 @@ UPlayerAnimInstance::UPlayerAnimInstance()
 
 	m_iDir = 0;
 
+	m_eRunType = ERunType::RunNone;
+
 	m_isAttackEnable = true;
 
 	m_isFalling = false;
@@ -89,6 +91,8 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 				}
 				else
 				{
+					m_eRunType = ERunType::RunNone;
+
 					m_strCurrentAnimType = m_strArray[(int)EPlayerAnimType::Idle];
 				}
 			}
@@ -131,35 +135,38 @@ void UPlayerAnimInstance::AnimNotify_CollisionCheck()
 
 	if (IsValid(pPlayer))
 	{
-		FHitResult result;
+		TArray<FHitResult> resultArray;
 
-		bool bCollision = pPlayer->CollisionCheck(result);
+		bool bCollision = pPlayer->CollisionCheck(resultArray);
 
 		if (bCollision)
 		{
-			FActorSpawnParameters tSpawnParams;
-
-			tSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
-			AEffectSound* pSound = GetWorld()->SpawnActor<AEffectSound>(result.ImpactPoint, result.ImpactNormal.Rotation(), tSpawnParams);
-
-			switch (m_iAttack)
+			for (auto result : resultArray)
 			{
-			case (int32)EAttackType::Attack1:
-				pSound->LoadAudio(TEXT("SoundWave'/Game/Sound/Hit_SwordStabEarth_Rumble1.Hit_SwordStabEarth_Rumble1'"));
-				break;
-			case (int32)EAttackType::Attack2:
-				pSound->LoadAudio(TEXT("SoundWave'/Game/Sound/Hit_SwordStabEarth_Rumble2.Hit_SwordStabEarth_Rumble2'"));
-				break;
-			case (int32)EAttackType::Attack3:
-				pSound->LoadAudio(TEXT("SoundWave'/Game/Sound/Hit_SwordStabEarth_Rumble3.Hit_SwordStabEarth_Rumble3'"));
-				break;
-			case (int32)EAttackType::Attack4:
-				pSound->LoadAudio(TEXT("SoundWave'/Game/Sound/Hit_SwordReboundForcefield.Hit_SwordReboundForcefield'"));
-				break;
-			}
+				FActorSpawnParameters tSpawnParams;
 
-			pSound->Play();
+				tSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+				AEffectSound* pSound = GetWorld()->SpawnActor<AEffectSound>(result.ImpactPoint, result.ImpactNormal.Rotation(), tSpawnParams);
+
+				switch (m_iAttack)
+				{
+				case (int32)EAttackType::Attack1:
+					pSound->LoadAudio(TEXT("SoundWave'/Game/Sound/Hit_SwordStabEarth_Rumble1.Hit_SwordStabEarth_Rumble1'"));
+					break;
+				case (int32)EAttackType::Attack2:
+					pSound->LoadAudio(TEXT("SoundWave'/Game/Sound/Hit_SwordStabEarth_Rumble2.Hit_SwordStabEarth_Rumble2'"));
+					break;
+				case (int32)EAttackType::Attack3:
+					pSound->LoadAudio(TEXT("SoundWave'/Game/Sound/Hit_SwordStabEarth_Rumble3.Hit_SwordStabEarth_Rumble3'"));
+					break;
+				case (int32)EAttackType::Attack4:
+					pSound->LoadAudio(TEXT("SoundWave'/Game/Sound/Hit_SwordReboundForcefield.Hit_SwordReboundForcefield'"));
+					break;
+				}
+
+				pSound->Play();
+			}
 		}
 	}
 }

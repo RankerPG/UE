@@ -2,6 +2,7 @@
 #include "MonsterAnimInstance.h"
 #include "SpawnPoint.h"
 #include "UEGameInstance.h"
+//#include "MinionAIController.h"
 
 AMonster::AMonster()
 {
@@ -17,7 +18,12 @@ AMonster::AMonster()
 	m_iPatrolNum = 0;
 }
 
-const FVector& AMonster::NextPatrolPos()
+FString& AMonster::Get_AnimSequence()
+{
+	return m_pAnim->Get_AnimName();
+}
+
+const FVector& AMonster::Get_NextPatrolPos()
 {
 	m_iPatrolNum = (++m_iPatrolNum) % m_PatrolPosArray.Num();
 
@@ -53,13 +59,10 @@ void AMonster::Tick(float DeltaTime)
 void AMonster::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
 }
 
 void AMonster::PossessedBy(AController* NewController)
 {
-	Super::PossessedBy(NewController);
-
 	FMonsterInfo* info = Cast<UUEGameInstance>(GetGameInstance())->FindMonsterInfo(*m_strMonsterName);
 
 	if (nullptr != info)
@@ -92,7 +95,7 @@ float AMonster::TakeDamage(float DamageAmount, struct FDamageEvent const& Damage
 
 		m_fHP -= fDamage;
 
-		LOG(Warning, TEXT("%f"), m_fHP);
+		//LOG(Warning, TEXT("%f"), m_fHP);
 
 		if (m_fHP > 0.f)
 		{
@@ -122,4 +125,14 @@ void AMonster::Death()
 void AMonster::DeathEnd()
 {
 	Destroy();
+}
+
+void AMonster::AttackEnd()
+{
+	m_OnAttackEnd.Broadcast();
+
+	for (FDelegateHandle handle : m_AttackEndHandleArray)
+	{
+		m_OnAttackEnd.Remove(handle);
+	}
 }

@@ -42,7 +42,5 @@ void ASkillEffect::Load_Particle(const FString& strPath)
 
 void ASkillEffect::OnFinished(UParticleSystemComponent* pSystem)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Particle Finished"));
-
 	Destroy();
 }
