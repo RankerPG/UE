@@ -54,6 +54,10 @@ void UBTTask_MoveTarget::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 
 	if (pMonster->Get_HP() > 0.f)
 	{
+		pMonster->Set_AnimSequence(TEXT("Run"));
+
+		pMonster->GetCharacterMovement()->MaxWalkSpeed = 600.f;
+
 		UAIBlueprintHelperLibrary::SimpleMoveToActor(pController, pTarget);
 	}
 

@@ -19,7 +19,12 @@ enum class EPlayerAnimType : uint8
 	Attack,
 	Death,
 	Jump,
+	Hit,
+	Dash,
 	Skill,
+	Skill2,
+	Skill3,
+	Skill4,
 };
 
 UENUM(BlueprintType)
@@ -43,9 +48,24 @@ enum class EJumpType : uint8
 };
 
 UENUM(BlueprintType)
+enum class ERunType : uint8
+{
+	RunNone,
+	RunFront,
+	RunFrontLeft,
+	RunFrontRight,
+	RunBack,
+	RunBackLeft,
+	RunBackRight,
+	RunLeft,
+	RunRight,
+};
+
+UENUM(BlueprintType)
 enum class EMonsterAnimType : uint8
 {
 	Idle,
+	Patrol,
 	Run,
 	Attack,
 	Hit,
@@ -60,7 +80,7 @@ enum ECollisionChannelConvert
 	CollisionMonster,
 	CollisionPlayerAttack,
 	CollisionMonsterDetect,
-	Collsion5,
+	CollisionMonsterAttack,
 	Collsion6,
 	Collsion7,
 	Collsion8,

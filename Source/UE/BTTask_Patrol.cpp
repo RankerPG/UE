@@ -53,10 +53,17 @@ void UBTTask_Patrol::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemo
 	if (!pMonster)
 		return;
 
+	if (TEXT("Hit") == pMonster->Get_AnimSequence())
+		return;
+
 	FVector vPatrolPos = pMonster->Get_PatrolPos();
 
 	if (pMonster->Get_HP() > 0.f)
 	{
+		pMonster->Set_AnimSequence(TEXT("Patrol"));
+
+		pMonster->GetCharacterMovement()->MaxWalkSpeed = 200.f;
+
 		UAIBlueprintHelperLibrary::SimpleMoveToLocation(pController, vPatrolPos);
 	}
 
@@ -68,7 +75,7 @@ void UBTTask_Patrol::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemo
 	{
 		pController->StopMovement();
 
-		pMonster->NextPatrolPos();
+		pMonster->Get_NextPatrolPos();
 
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 	}
