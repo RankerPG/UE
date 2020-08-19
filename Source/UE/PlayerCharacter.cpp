@@ -84,7 +84,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAxis<APlayerCharacter>(TEXT("Move_Forward"), this, &APlayerCharacter::Move_Foward);
+	PlayerInputComponent->BindAxis<APlayerCharacter>(TEXT("Move_Forward"), this, &APlayerCharacter::Move_Forward);
 	PlayerInputComponent->BindAxis<APlayerCharacter>(TEXT("Move_Side"), this, &APlayerCharacter::Move_Side);
 	PlayerInputComponent->BindAxis<APlayerCharacter>(TEXT("Mouse_X"), this, &APlayerCharacter::Mouse_X);
 	PlayerInputComponent->BindAxis<APlayerCharacter>(TEXT("Mouse_Y"), this, &APlayerCharacter::Mouse_Y);
@@ -102,14 +102,66 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 }
 
-void APlayerCharacter::Move_Foward(float fScale)
+void APlayerCharacter::Move_Forward(float fScale)
 {
-	AddMovementInput(GetActorForwardVector(), fScale);
+	if (!IsValid(m_pAnim))
+		return;
+
+	if (0.f == fScale)
+	{
+		ERunType type = m_pAnim->Get_RunType();
+
+		if (ERunType::RunFront == type || ERunType::RunBack == type)
+			m_pAnim->Set_RunType(ERunType::RunNone);
+
+		return;
+	}
+
+	if (TEXT("Idle") == m_pAnim->Get_AnimType() || TEXT("Run") == m_pAnim->Get_AnimType())
+	{
+		AddMovementInput(GetActorForwardVector(), fScale);
+
+		ERunType type = fScale > 0.f ? ERunType::RunFront : ERunType::RunBack;
+
+		m_pAnim->Set_RunType(type);
+	}
 }
 
 void APlayerCharacter::Move_Side(float fScale)
 {
-	AddMovementInput(GetActorRightVector(), fScale);
+	if (!IsValid(m_pAnim))
+		return;
+
+	if (0.f == fScale)
+		return;
+
+	if (TEXT("Idle") == m_pAnim->Get_AnimType() || TEXT("Run") == m_pAnim->Get_AnimType())
+	{
+		AddMovementInput(GetActorRightVector(), fScale);
+
+		ERunType curType = m_pAnim->Get_RunType();
+
+		ERunType type = ERunType::RunNone; 
+
+		if (ERunType::RunFront == curType)
+		{
+			type = fScale > 0.f ? ERunType::RunFrontRight : ERunType::RunFrontLeft;
+
+			m_pAnim->Set_RunType(type);
+		}
+		else if (ERunType::RunBack == curType)
+		{
+			type = fScale > 0.f ? ERunType::RunBackRight : ERunType::RunBackLeft;
+
+			m_pAnim->Set_RunType(type);
+		}
+		else
+		{
+			type = fScale > 0.f ? ERunType::RunRight : ERunType::RunLeft;
+
+			m_pAnim->Set_RunType(type);
+		}
+	}
 }
 
 void APlayerCharacter::Mouse_X(float fScale)
@@ -127,8 +179,6 @@ void APlayerCharacter::Mouse_Wheel(float fScale)
 	m_pSpringArm->TargetArmLength -= fScale * 25.f;
 
 	m_pSpringArm->TargetArmLength = m_pSpringArm->TargetArmLength < 100.f ? 100.f : m_pSpringArm->TargetArmLength;
-	
-	
 }
 
 void APlayerCharacter::Action_Jump()
@@ -178,12 +228,12 @@ void APlayerCharacter::Fireball()
 	}
 }
 
-bool APlayerCharacter::CollisionCheck(FHitResult& resultOut)
+bool APlayerCharacter::CollisionCheck(TArray<FHitResult>& resultOut)
 {
 	FCollisionQueryParams tParams(NAME_None, false, this);
 
-	bool bCollision = GetWorld()->SweepSingleByChannel(resultOut, GetActorLocation(), GetActorLocation() + GetActorForwardVector() * m_fAttackRange, FQuat::Identity
-		, (ECollisionChannel)CollisionPlayerAttack, FCollisionShape::MakeSphere(30.f), tParams);
+	bool bCollision = GetWorld()->SweepMultiByChannel(resultOut, GetActorLocation(), GetActorLocation() + GetActorForwardVector() * m_fAttackRange, FQuat::Identity
+		, (ECollisionChannel)CollisionPlayerAttack, FCollisionShape::MakeSphere(100.f), tParams);
 
 #if ENABLE_DRAW_DEBUG
 
@@ -191,22 +241,27 @@ bool APlayerCharacter::CollisionCheck(FHitResult& resultOut)
 
 	FColor DrawColor = bCollision ? FColor::Red : FColor::Green;
 
-	DrawDebugCapsule(GetWorld(), vCenter, m_fAttackRange / 2.f, 30.f, FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat(), DrawColor, false, 2.f);
+	DrawDebugCapsule(GetWorld(), vCenter, m_fAttackRange / 2.f, 100.f, FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat(), DrawColor, false, 2.f);
+
 #endif
 
 	if (bCollision)
 	{
 		FDamageEvent tEvent;
 
-		resultOut.GetActor()->TakeDamage(m_fAttackPoint, tEvent, GetController(), this);
+		for (auto result : resultOut)
+		{
+			result.GetActor()->TakeDamage(m_fAttackPoint, tEvent, GetController(), this);
 
-		FActorSpawnParameters tSpawnParams;
+			FActorSpawnParameters tSpawnParams;
 
-		tSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+			tSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-		auto HitEffect = GetWorld()->SpawnActor<ASkillEffect>(resultOut.ImpactPoint, resultOut.ImpactNormal.Rotation(), tSpawnParams);
+			auto HitEffect = GetWorld()->SpawnActor<ASkillEffect>(result.ImpactPoint, result.ImpactNormal.Rotation(), tSpawnParams);
 
-		HitEffect->Load_Particle(TEXT("ParticleSystem'/Game/AdvancedMagicFX12/particles/P_ky_hit_water.P_ky_hit_water'"));
+			HitEffect->Load_Particle(TEXT("ParticleSystem'/Game/AdvancedMagicFX12/particles/P_ky_hit_water.P_ky_hit_water'"));
+		}
+
 	}
 
 	return bCollision;

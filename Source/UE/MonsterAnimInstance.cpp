@@ -1,5 +1,5 @@
 #include "MonsterAnimInstance.h"
-#include "Monster.h"
+#include "Minion.h"
 
 UMonsterAnimInstance::UMonsterAnimInstance()
 {
@@ -65,7 +65,22 @@ void UMonsterAnimInstance::AnimNotify_DeathEnd()
 	}
 }
 
-void UMonsterAnimInstance::Set_AnimName(const FString& strName)
+void UMonsterAnimInstance::AnimNotify_AttackEnd()
 {
-	m_strCurrentAnimType = strName;
+	AMonster* pMonster = Cast<AMonster>(TryGetPawnOwner());
+
+	if (IsValid(pMonster))
+	{
+		pMonster->AttackEnd();
+	}
+}
+
+void UMonsterAnimInstance::AnimNotify_ShotBullet()
+{
+	AMinion* pMonster = Cast<AMinion>(TryGetPawnOwner());
+
+	if (IsValid(pMonster))
+	{
+		pMonster->Shot_Bullet();
+	}
 }
