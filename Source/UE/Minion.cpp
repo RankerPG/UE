@@ -59,7 +59,7 @@ void AMinion::PossessedBy(AController* NewController)
 
 void AMinion::Shot_Bullet()
 {
-	if (IsValid(m_pController))
+	if (!IsValid(m_pController))
 		return;
 
 	if (!IsValid(m_pMesh))
@@ -71,7 +71,7 @@ void AMinion::Shot_Bullet()
 
 	if (IsValid(pTarget))
 	{
-		vTargetPos = pTarget->GetActorLocation();
+		vTargetPos = pTarget->GetActorLocation() + FVector(0.f, 0.f, -100.f);
 	}
 
 	vLoc = m_pMesh->GetSocketByName(TEXT("Muzzle_Front"))->GetSocketLocation(m_pMesh);
@@ -80,7 +80,9 @@ void AMinion::Shot_Bullet()
 
 	vDir.Normalize();
 
-	FRotator rot = vDir.Rotation();
+	FRotator rotForMesh(0.f, -90.f, 0.f);
+
+	FRotator rot = rotForMesh + vDir.Rotation();
 
 	FActorSpawnParameters tParam;
 

@@ -9,7 +9,7 @@
 // Sets default values
 APlayerCharacter::APlayerCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshFinder(TEXT("SkeletalMesh'/Game/Player/ParagonShinbi/Characters/Heroes/Shinbi/Meshes/Shinbi.Shinbi'"));
@@ -18,9 +18,11 @@ APlayerCharacter::APlayerCharacter()
 	{
 		GetMesh()->SetSkeletalMesh(MeshFinder.Object);
 	}
-	
+
 	GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -88.f));
 	GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+
+	m_pMesh = GetMesh();
 
 	ConstructorHelpers::FClassFinder<UPlayerAnimInstance> ClassFinder(TEXT("AnimBlueprint'/Game/Player/BP_Anim.BP_Anim_C'"));
 
@@ -39,6 +41,7 @@ APlayerCharacter::APlayerCharacter()
 	m_pSpringArm->TargetArmLength = 700.f;
 	m_pSpringArm->TargetOffset.Z = 70.f;
 	m_pSpringArm->SetRelativeRotation(FRotator(-20.f, 0.f, 0.f));
+	m_pSpringArm->bDoCollisionTest = false;
 
 	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->MaxWalkSpeed = 1000.f;
@@ -73,17 +76,16 @@ void APlayerCharacter::BeginPlay()
 	m_pWeapon->Load_Weapon(TEXT("StaticMesh'/Game/Item/Weapon_Pack/Mesh/Weapons/Weapons_Kit/SM_Sword.SM_Sword'"));
 }
 
-// Called every frame
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
 
-// Called to bind functionality to input
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	//Axis
 	PlayerInputComponent->BindAxis<APlayerCharacter>(TEXT("Move_Forward"), this, &APlayerCharacter::Move_Forward);
 	PlayerInputComponent->BindAxis<APlayerCharacter>(TEXT("Move_Side"), this, &APlayerCharacter::Move_Side);
 	PlayerInputComponent->BindAxis<APlayerCharacter>(TEXT("Mouse_X"), this, &APlayerCharacter::Mouse_X);
@@ -96,10 +98,23 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction<APlayerCharacter>(TEXT("Action_Attack"), EInputEvent::IE_Pressed, this
 		, &APlayerCharacter::Action_Attack);
 	PlayerInputComponent->BindAction<APlayerCharacter>(TEXT("Drop_Weapon"), EInputEvent::IE_Pressed, this
-		, &APlayerCharacter::Drop_Weapon);
+		, &APlayerCharacter::Action_DropWeapon);
 	PlayerInputComponent->BindAction<APlayerCharacter>(TEXT("Skill_1"), EInputEvent::IE_Pressed, this
-		, &APlayerCharacter::Skill_1);
+		, &APlayerCharacter::Action_Skill_1);
+	PlayerInputComponent->BindAction<APlayerCharacter>(TEXT("Dash"), EInputEvent::IE_Pressed, this
+		, &APlayerCharacter::Action_Dash);
+}
 
+float APlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
+{
+	float fDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	if (!IsValid(m_pAnim))
+		return fDamage;
+
+	m_pAnim->Set_AnimType(EPlayerAnimType::Hit);
+
+	return fDamage;
 }
 
 void APlayerCharacter::Move_Forward(float fScale)
@@ -107,7 +122,7 @@ void APlayerCharacter::Move_Forward(float fScale)
 	if (!IsValid(m_pAnim))
 		return;
 
-	if (0.f == fScale)
+	if (0.f == fScale || TEXT("Hit") == m_pAnim->Get_AnimType())
 	{
 		ERunType type = m_pAnim->Get_RunType();
 
@@ -132,7 +147,7 @@ void APlayerCharacter::Move_Side(float fScale)
 	if (!IsValid(m_pAnim))
 		return;
 
-	if (0.f == fScale)
+	if (0.f == fScale || TEXT("Hit") == m_pAnim->Get_AnimType() || TEXT("Dash") == m_pAnim->Get_AnimType())
 		return;
 
 	if (TEXT("Idle") == m_pAnim->Get_AnimType() || TEXT("Run") == m_pAnim->Get_AnimType())
@@ -141,7 +156,7 @@ void APlayerCharacter::Move_Side(float fScale)
 
 		ERunType curType = m_pAnim->Get_RunType();
 
-		ERunType type = ERunType::RunNone; 
+		ERunType type = ERunType::RunNone;
 
 		if (ERunType::RunFront == curType)
 		{
@@ -183,6 +198,9 @@ void APlayerCharacter::Mouse_Wheel(float fScale)
 
 void APlayerCharacter::Action_Jump()
 {
+	if (TEXT("Jump") == m_pAnim->Get_AnimType())
+		return;
+
 	Jump();
 
 	m_pAnim->Set_AnimType(EPlayerAnimType::Jump);
@@ -195,7 +213,7 @@ void APlayerCharacter::Action_Attack()
 	m_pAnim->Set_AttackType();
 }
 
-void APlayerCharacter::Drop_Weapon()
+void APlayerCharacter::Action_DropWeapon()
 {
 	if (IsValid(m_pWeapon))
 	{
@@ -207,9 +225,17 @@ void APlayerCharacter::Drop_Weapon()
 	}
 }
 
-void APlayerCharacter::Skill_1()
+void APlayerCharacter::Action_Skill_1()
 {
 	m_pAnim->Set_AnimType(EPlayerAnimType::Skill);
+}
+
+void APlayerCharacter::Action_Dash()
+{
+	if (TEXT("Dash") == m_pAnim->Get_AnimType())
+		return;
+
+	m_pAnim->Set_AnimType(EPlayerAnimType::Dash);
 }
 
 void APlayerCharacter::Fireball()
@@ -265,4 +291,59 @@ bool APlayerCharacter::CollisionCheck(TArray<FHitResult>& resultOut)
 	}
 
 	return bCollision;
+}
+
+void APlayerCharacter::Move_Dash()
+{
+	FVector vLoc = GetActorLocation();
+
+	ERunType type = m_pAnim->Get_RunType();
+
+
+	LOG(Warning, TEXT("%d"), type);
+
+	FVector vDashDir;
+
+	FRotator rot = m_pMesh->GetRelativeRotation();
+
+	switch (type)
+	{
+	case ERunType::RunNone:
+	case ERunType::RunFront:
+	case ERunType::RunFrontLeft:
+	case ERunType::RunFrontRight:
+		vDashDir = GetActorForwardVector();
+		m_rotDash = FRotator::ZeroRotator;
+		break;
+	case ERunType::RunBack:
+	case ERunType::RunBackLeft:
+	case ERunType::RunBackRight:
+		vDashDir = -GetActorForwardVector();
+		rot += m_rotDash = FRotator(0.f, -180.f, 0.f);
+		m_pMesh->SetRelativeRotation(rot);
+		break;
+	case ERunType::RunLeft:
+		vDashDir = -GetActorRightVector();
+		rot += FRotator(0.f, -90.f, 0.f);
+		m_rotDash = FRotator(0.f, 90.f, 0.f);
+		m_pMesh->SetRelativeRotation(rot);
+		break;
+	case ERunType::RunRight:
+		vDashDir = GetActorRightVector();
+		rot += FRotator(0.f, 90.f, 0.f);
+		m_rotDash = FRotator(0.f, -90.f, 0.f);
+		m_pMesh->SetRelativeRotation(rot);
+		break;
+	}
+
+	vLoc += vDashDir * 1500.f;
+
+	SetActorLocation(vLoc);
+}
+
+void APlayerCharacter::Dash_End()
+{
+	FRotator rot = m_pMesh->GetRelativeRotation() + m_rotDash;
+
+	m_pMesh->SetRelativeRotation(rot);
 }

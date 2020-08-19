@@ -14,14 +14,24 @@ UPlayerAnimInstance::UPlayerAnimInstance()
 	m_strArray.Add(TEXT("Attack"));
 	m_strArray.Add(TEXT("Death"));
 	m_strArray.Add(TEXT("Jump"));
+	m_strArray.Add(TEXT("Hit"));
+	m_strArray.Add(TEXT("Dash"));
 	m_strArray.Add(TEXT("Skill"));
+	m_strArray.Add(TEXT("Skill2"));
+	m_strArray.Add(TEXT("Skill3"));
+	m_strArray.Add(TEXT("Skill4"));
 
 	m_strIdle = m_strArray[0];
 	m_strRun = m_strArray[1];
 	m_strAttack = m_strArray[2];
 	m_strDeath = m_strArray[3];
 	m_strJump = m_strArray[4];
-	m_strSkill = m_strArray[5];
+	m_strHit = m_strArray[5];
+	m_strDash = m_strArray[6];
+	m_strSkill = m_strArray[7];
+	m_strSkill2 = m_strArray[8];
+	m_strSkill3 = m_strArray[9];
+	m_strSkill4 = m_strArray[10];
 
 	m_iAttack = (int32)EAttackType::AttackNone;
 
@@ -44,7 +54,7 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
 	auto pPlayer = Cast<APlayerCharacter>(TryGetPawnOwner());
-	
+
 	if (IsValid(pPlayer))
 	{
 		float fSpeed = pPlayer->GetVelocity().Size();
@@ -58,38 +68,27 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 		if (m_strArray[(int)EPlayerAnimType::Attack] == m_strCurrentAnimType)
 		{
-			
+
 		}
 		else if (m_strArray[(int)EPlayerAnimType::Skill] == m_strCurrentAnimType)
 		{
-			
+
 		}
 		else
 		{
 			if (m_strArray[(int)EPlayerAnimType::Jump] == m_strCurrentAnimType)
 			{
-				
+
 			}
 			else
 			{
-				if (0 < fSpeed)
+				if (0.f < fSpeed)
 				{
-					float fForward = Dot4(pPlayer->GetActorForwardVector(), pPlayer->GetVelocity());
-
-					if (0.f != fForward)
-					{
-						m_iDir = fForward > 0.f ? 1 : 2;
-					}
-					else
-					{
-						float fRight = Dot4(pPlayer->GetActorRightVector(), pPlayer->GetVelocity());
-
-						m_iDir = fRight > 0.f ? 3 : 4;
-					}
-
-					m_strCurrentAnimType = m_strArray[(int)EPlayerAnimType::Run];
+					if (m_strArray[(int)EPlayerAnimType::Dash] != m_strCurrentAnimType)
+						m_strCurrentAnimType = m_strArray[(int)EPlayerAnimType::Run];
 				}
-				else
+				else if (m_strArray[(int)EPlayerAnimType::Hit] != m_strCurrentAnimType
+					&& m_strArray[(int)EPlayerAnimType::Dash] != m_strCurrentAnimType)
 				{
 					m_eRunType = ERunType::RunNone;
 
@@ -117,6 +116,11 @@ void UPlayerAnimInstance::AnimNotify_JumpToIdle()
 	m_strCurrentAnimType = m_strArray[(int)EPlayerAnimType::Idle];
 	m_isAttackEnable = true;
 	m_iAttack = 0;
+}
+
+void UPlayerAnimInstance::AnimNotify_ActionToIdle()
+{
+	m_strCurrentAnimType = m_strArray[(int)EPlayerAnimType::Idle];
 }
 
 void UPlayerAnimInstance::AnimNotify_Fireball()
@@ -163,11 +167,34 @@ void UPlayerAnimInstance::AnimNotify_CollisionCheck()
 				case (int32)EAttackType::Attack4:
 					pSound->LoadAudio(TEXT("SoundWave'/Game/Sound/Hit_SwordReboundForcefield.Hit_SwordReboundForcefield'"));
 					break;
+				default:
+					pSound->LoadAudio(TEXT("SoundWave'/Game/Sound/Hit_SwordStabEarth_Rumble1.Hit_SwordStabEarth_Rumble1'"));
+					break;
 				}
 
 				pSound->Play();
 			}
 		}
+	}
+}
+
+void UPlayerAnimInstance::AnimNotify_Dash()
+{
+	auto pPlayer = Cast<APlayerCharacter>(TryGetPawnOwner());
+
+	if (IsValid(pPlayer))
+	{
+		pPlayer->Move_Dash();
+	}
+}
+
+void UPlayerAnimInstance::AnimNotify_DashEnd()
+{
+	auto pPlayer = Cast<APlayerCharacter>(TryGetPawnOwner());
+
+	if (IsValid(pPlayer))
+	{
+		pPlayer->Dash_End();
 	}
 }
 

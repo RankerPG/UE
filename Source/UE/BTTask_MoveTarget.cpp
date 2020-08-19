@@ -22,7 +22,7 @@ EBTNodeResult::Type UBTTask_MoveTarget::ExecuteTask(UBehaviorTreeComponent& Owne
 
 	AActor* pTarget = Cast<AActor>(pController->GetBlackboardDataAsObject(AMonsterAIController::m_TargetKey));
 
-	if(!pTarget)
+	if (!pTarget)
 		return EBTNodeResult::Failed;
 
 	m_fRange = pController->GetBlackboardDataAsFloat(AMonsterAIController::m_AttackRangeKey);
@@ -56,6 +56,8 @@ void UBTTask_MoveTarget::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 	{
 		pMonster->Set_AnimSequence(TEXT("Run"));
 
+		pMonster->GetCharacterMovement()->MaxWalkSpeed = 600.f;
+
 		UAIBlueprintHelperLibrary::SimpleMoveToActor(pController, pTarget);
 	}
 
@@ -63,7 +65,7 @@ void UBTTask_MoveTarget::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 	FVector vTargetPos = pTarget->GetMesh()->GetComponentLocation();
 
 	float fDist = FVector::Distance(vMonsterPos, vTargetPos);
-	
+
 	if (fDist < m_fRange)
 	{
 		pController->StopMovement();

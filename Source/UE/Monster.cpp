@@ -2,7 +2,8 @@
 #include "MonsterAnimInstance.h"
 #include "SpawnPoint.h"
 #include "UEGameInstance.h"
-//#include "MinionAIController.h"
+#include "MinionAIController.h"
+#include "DrawDebugHelpers.h"
 
 AMonster::AMonster()
 {
@@ -54,6 +55,8 @@ void AMonster::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+
+	//GetWorldTimerManager()->Set
 }
 
 void AMonster::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -63,12 +66,15 @@ void AMonster::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AMonster::PossessedBy(AController* NewController)
 {
+	Super::PossessedBy(NewController);
+
 	FMonsterInfo* info = Cast<UUEGameInstance>(GetGameInstance())->FindMonsterInfo(*m_strMonsterName);
 
 	if (nullptr != info)
 	{
 		m_fTraceRange = info->TraceRange;
 		m_fAttackRange = info->AttackRange;
+		m_fAttackDelay = info->AttackDelay;
 		m_fAttackPoint = info->AttackPoint;
 		m_fArmorPoint = info->ArmorPoint;
 		m_fHP = m_fMaxHP = info->HP;
@@ -114,7 +120,7 @@ float AMonster::TakeDamage(float DamageAmount, struct FDamageEvent const& Damage
 
 void AMonster::CollsionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	
+
 }
 
 void AMonster::Death()
@@ -135,4 +141,38 @@ void AMonster::AttackEnd()
 	{
 		m_OnAttackEnd.Remove(handle);
 	}
+}
+
+bool AMonster::CollisionCheck(FHitResult& resultOut)
+{
+	FCollisionQueryParams tParam(NAME_None, false, this);
+
+	FVector vLoc = GetActorLocation();
+	FVector vForward = GetActorForwardVector();
+
+	bool bCollision = GetWorld()->SweepSingleByChannel(resultOut, vLoc, vLoc + vForward * m_fAttackRange,
+		FQuat::Identity, (ECollisionChannel)CollisionMonsterAttack, FCollisionShape::MakeSphere(50.f), tParam);
+
+#if ENABLE_DRAW_DEBUG
+
+	FVector vCenter = vLoc + vForward * (m_fAttackRange / 2.f);
+
+	FColor DrawColor = bCollision ? FColor::Red : FColor::Green;
+
+	DrawDebugCapsule(GetWorld(), vCenter, m_fAttackRange / 2.f, 50.f, FRotationMatrix::MakeFromZ(vForward).ToQuat()
+		, DrawColor, false, 0.5f);
+
+#endif
+
+	if (bCollision)
+	{
+		FDamageEvent damageEvent;
+
+		//Damage parameter
+		resultOut.GetActor()->TakeDamage(10.f, damageEvent, m_pController, this);
+
+		// Add Effect
+	}
+
+	return true;
 }

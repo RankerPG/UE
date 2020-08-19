@@ -30,14 +30,14 @@ public:
 	void Set_AnimSequence(const FString& strAnim);
 	void Set_PatrolEnable(bool bPatrolEnable) { m_bPatrolEnable = bPatrolEnable; }
 	UFUNCTION(BlueprintCallable)
-	void Add_PatrolPos(const FVector& vPos) { m_PatrolPosArray.Add(vPos); }
+		void Add_PatrolPos(const FVector& vPos) { m_PatrolPosArray.Add(vPos); }
 
 public:
 	template <typename T>
 	void Add_AttackEndFunction(T* pObj, void(T::* func)(void))
 	{
 		FDelegateHandle handle = m_OnAttackEnd.AddUObject(pObj, func);
-		
+
 		m_AttackEndHandleArray.Add(handle);
 	}
 
@@ -45,7 +45,7 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
 
-public:	
+public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -57,65 +57,71 @@ public:
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser);
 
 	UFUNCTION()
-	virtual void CollsionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+		virtual void CollsionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	virtual void Death();
 	virtual void DeathEnd();
 
+public:
 	void AttackEnd();
+
+	bool CollisionCheck(FHitResult& resultOut);
 
 protected:
 	UPROPERTY(category = Monster, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class ASpawnPoint* m_pSpawnPoint;
+		class ASpawnPoint* m_pSpawnPoint;
 
 	class UMonsterAnimInstance* m_pAnim;
 
 	class AMinionAIController* m_pController;
 
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	TArray<FVector> m_PatrolPosArray;
+		TArray<FVector> m_PatrolPosArray;
 
 	FOnAttackEndDelegate m_OnAttackEnd;
 	TArray<FDelegateHandle> m_AttackEndHandleArray;
 
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	int32 m_iPatrolNum;
+		int32 m_iPatrolNum;
 
 	bool m_bPatrolEnable;
 
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	FString m_strMonsterName;
+		FString m_strMonsterName;
 
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	float m_fTraceRange;
+		float m_fTraceRange;
 
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	float m_fAttackRange;
+		float m_fAttackRange;
 
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	float m_fAttackPoint;
-	
+		float m_fAttackDelay;
+
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	float m_fArmorPoint;
-	
+		float m_fAttackPoint;
+
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	float m_fHP;
-	
+		float m_fArmorPoint;
+
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	float m_fMaxHP;
-	
+		float m_fHP;
+
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	float m_fMP;
-	
+		float m_fMaxHP;
+
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	float m_fMaxMP;
-	
+		float m_fMP;
+
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	int m_iLevel;
-	
+		float m_fMaxMP;
+
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	int m_iExp;
-	
+		int m_iLevel;
+
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	int m_iGold;
+		int m_iExp;
+
+	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		int m_iGold;
 };

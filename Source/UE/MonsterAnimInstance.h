@@ -23,35 +23,41 @@ private:
 	virtual void NativeUpdateAnimation(float DeltaSeconds);
 
 	UFUNCTION()
-	void AnimNotify_ActionToIdle();
+		void AnimNotify_ActionToIdle();
 
 	UFUNCTION()
-	void AnimNotify_DeathEnd();
+		void AnimNotify_DeathEnd();
 
 	UFUNCTION()
-	void AnimNotify_AttackEnd();
+		void AnimNotify_AttackEnd();
 
 	UFUNCTION()
-	void AnimNotify_ShotBullet();
+		void AnimNotify_ShotBullet();
+
+	UFUNCTION()
+		void AnimNotify_CollisionCheck();
 
 protected:
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	FString m_strCurrentAnimType;
+		FString m_strCurrentAnimType;
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	FString m_strIdle;
+		FString m_strIdle;
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	FString m_strRun;
+		FString m_strPatrol;
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	FString m_strAttack;
+		FString m_strRun;
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	FString m_strHit;
+		FString m_strAttack;
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	FString m_strDeath;
+		FString m_strHit;
+
+	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		FString m_strDeath;
 
 	TArray<FString> m_strArray;
 };

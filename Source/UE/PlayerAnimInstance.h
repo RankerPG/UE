@@ -24,19 +24,28 @@ public:
 
 public:
 	UFUNCTION()
-	void AnimNotify_AttackToIdle();
+		void AnimNotify_AttackToIdle();
 
 	UFUNCTION()
-	void AnimNotify_AttackEnable();
+		void AnimNotify_AttackEnable();
 
 	UFUNCTION()
-	void AnimNotify_JumpToIdle();
+		void AnimNotify_JumpToIdle();
 
 	UFUNCTION()
-	void AnimNotify_Fireball();
+		void AnimNotify_ActionToIdle();
 
 	UFUNCTION()
-	void AnimNotify_CollisionCheck();
+		void AnimNotify_Fireball();
+
+	UFUNCTION()
+		void AnimNotify_CollisionCheck();
+
+	UFUNCTION()
+		void AnimNotify_Dash();
+
+	UFUNCTION()
+		void AnimNotify_DashEnd();
 
 public:
 	UPlayerAnimInstance();
@@ -48,40 +57,55 @@ private:
 
 protected:
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	FString m_strCurrentAnimType;
+		FString m_strCurrentAnimType;
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	FString m_strIdle;
+		FString m_strIdle;
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	FString m_strRun;
+		FString m_strRun;
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	FString m_strAttack;
+		FString m_strAttack;
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	FString m_strDeath;
+		FString m_strDeath;
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	FString m_strJump;
+		FString m_strJump;
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	FString m_strSkill;
+		FString m_strHit;
+
+	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+		FString m_strDash;
+
+	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+		FString m_strSkill;
+
+	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+		FString m_strSkill2;
+
+	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+		FString m_strSkill3;
+
+	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+		FString m_strSkill4;
 
 	TArray<FString>m_strArray;
 
 	//
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	int32 m_iAttack;
+		int32 m_iAttack;
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	int32 m_iDir;
+		int32 m_iDir;
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	ERunType m_eRunType;
+		ERunType m_eRunType;
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	bool m_isFalling;
+		bool m_isFalling;
 
 	bool m_isAttackEnable;
 };

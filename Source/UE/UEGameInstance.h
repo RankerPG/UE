@@ -14,31 +14,34 @@ struct FMonsterInfo : public FTableRowBase
 
 public:
 	UPROPERTY(category = Data, EditAnywhere, BlueprintReadWrite)
-	float TraceRange;
+		float TraceRange;
 
 	UPROPERTY(category = Data, EditAnywhere, BlueprintReadWrite)
-	float AttackRange;
+		float AttackRange;
 
 	UPROPERTY(category = Data, EditAnywhere, BlueprintReadWrite)
-	float AttackPoint;
+		float AttackDelay;
 
 	UPROPERTY(category = Data, EditAnywhere, BlueprintReadWrite)
-	float ArmorPoint;
+		float AttackPoint;
 
 	UPROPERTY(category = Data, EditAnywhere, BlueprintReadWrite)
-	float HP;
+		float ArmorPoint;
 
 	UPROPERTY(category = Data, EditAnywhere, BlueprintReadWrite)
-	float MP;
+		float HP;
 
 	UPROPERTY(category = Data, EditAnywhere, BlueprintReadWrite)
-	int32 Level;
+		float MP;
 
 	UPROPERTY(category = Data, EditAnywhere, BlueprintReadWrite)
-	int32 Exp;
+		int32 Level;
 
 	UPROPERTY(category = Data, EditAnywhere, BlueprintReadWrite)
-	int32 Gold;
+		int32 Exp;
+
+	UPROPERTY(category = Data, EditAnywhere, BlueprintReadWrite)
+		int32 Gold;
 };
 
 
@@ -52,12 +55,12 @@ public:
 
 private:
 	UPROPERTY()
-	UDataTable* MonsterInfoTable;
+		UDataTable* MonsterInfoTable;
 
 public:
 	virtual void Init();
 
 public:
 	FMonsterInfo* FindMonsterInfo(const FName& key);
-	
+
 };
