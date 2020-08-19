@@ -20,9 +20,6 @@ public:
 	float AttackRange;
 
 	UPROPERTY(category = Data, EditAnywhere, BlueprintReadWrite)
-	float AttackDelay;
-
-	UPROPERTY(category = Data, EditAnywhere, BlueprintReadWrite)
 	float AttackPoint;
 
 	UPROPERTY(category = Data, EditAnywhere, BlueprintReadWrite)

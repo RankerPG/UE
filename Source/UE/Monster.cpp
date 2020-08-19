@@ -2,8 +2,6 @@
 #include "MonsterAnimInstance.h"
 #include "SpawnPoint.h"
 #include "UEGameInstance.h"
-#include "MinionAIController.h"
-#include "DrawDebugHelpers.h"
 
 AMonster::AMonster()
 {
@@ -19,12 +17,7 @@ AMonster::AMonster()
 	m_iPatrolNum = 0;
 }
 
-FString& AMonster::Get_AnimSequence()
-{
-	return m_pAnim->Get_AnimName();
-}
-
-const FVector& AMonster::Get_NextPatrolPos()
+const FVector& AMonster::NextPatrolPos()
 {
 	m_iPatrolNum = (++m_iPatrolNum) % m_PatrolPosArray.Num();
 
@@ -55,13 +48,12 @@ void AMonster::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-
-	//GetWorldTimerManager()->Set
 }
 
 void AMonster::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
 }
 
 void AMonster::PossessedBy(AController* NewController)
@@ -74,7 +66,6 @@ void AMonster::PossessedBy(AController* NewController)
 	{
 		m_fTraceRange = info->TraceRange;
 		m_fAttackRange = info->AttackRange;
-		m_fAttackDelay = info->AttackDelay;
 		m_fAttackPoint = info->AttackPoint;
 		m_fArmorPoint = info->ArmorPoint;
 		m_fHP = m_fMaxHP = info->HP;
@@ -101,7 +92,7 @@ float AMonster::TakeDamage(float DamageAmount, struct FDamageEvent const& Damage
 
 		m_fHP -= fDamage;
 
-		//LOG(Warning, TEXT("%f"), m_fHP);
+		LOG(Warning, TEXT("%f"), m_fHP);
 
 		if (m_fHP > 0.f)
 		{
@@ -131,48 +122,4 @@ void AMonster::Death()
 void AMonster::DeathEnd()
 {
 	Destroy();
-}
-
-void AMonster::AttackEnd()
-{
-	m_OnAttackEnd.Broadcast();
-
-	for (FDelegateHandle handle : m_AttackEndHandleArray)
-	{
-		m_OnAttackEnd.Remove(handle);
-	}
-}
-
-bool AMonster::CollisionCheck(FHitResult& resultOut)
-{
-	FCollisionQueryParams tParam(NAME_None, false, this);
-
-	FVector vLoc = GetActorLocation();
-	FVector vForward = GetActorForwardVector();
-
-	bool bCollision = GetWorld()->SweepSingleByChannel(resultOut, vLoc, vLoc + vForward * m_fAttackRange,
-		FQuat::Identity, (ECollisionChannel)CollisionMonsterAttack, FCollisionShape::MakeSphere(50.f), tParam);
-
-#if ENABLE_DRAW_DEBUG
-
-	FVector vCenter = vLoc + vForward * (m_fAttackRange / 2.f);
-
-	FColor DrawColor = bCollision ? FColor::Red : FColor::Green;
-
-	DrawDebugCapsule(GetWorld(), vCenter, m_fAttackRange / 2.f, 50.f, FRotationMatrix::MakeFromZ(vForward).ToQuat()
-		, DrawColor, false, 0.5f);
-
-#endif
-
-	if (bCollision)
-	{
-		FDamageEvent damageEvent;
-		
-		//Damage parameter
-		resultOut.GetActor()->TakeDamage(10.f, damageEvent, m_pController, this);
-
-		// Add Effect
-	}
-
-	return true;
 }

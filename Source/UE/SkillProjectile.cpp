@@ -1,8 +1,13 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
 #include "SkillProjectile.h"
 #include "SkillEffect.h"
 
+// Sets default values
 ASkillProjectile::ASkillProjectile()
 {
+ 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	m_pMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Movement"));
@@ -37,6 +42,7 @@ ASkillProjectile::ASkillProjectile()
 	m_fMaxDistance = 1000.f;
 }
 
+// Called when the game starts or when spawned
 void ASkillProjectile::BeginPlay()
 {
 	Super::BeginPlay();
@@ -46,6 +52,7 @@ void ASkillProjectile::BeginPlay()
 	m_pMovement->OnProjectileStop.AddDynamic(this, &ASkillProjectile::OnStop);
 }
 
+// Called every frame
 void ASkillProjectile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -70,15 +77,6 @@ void ASkillProjectile::OnStop(const FHitResult& tHit)
 	hitEffect->Load_Particle(TEXT("ParticleSystem'/Game/AdvancedMagicFX12/particles/P_ky_hit_fire.P_ky_hit_fire'"));
 
 	hitEffect->SetActorLocationAndRotation(tHit.ImpactPoint, GetActorRotation());
-
-	AActor* pTarget = tHit.GetActor();
-
-	if (IsValid(pTarget))
-	{
-		FDamageEvent damageEvent;
-
-		pTarget->TakeDamage(50.f, damageEvent, GetWorld()->GetFirstPlayerController(), pTarget);
-	}
 
 	Destroy();
 }

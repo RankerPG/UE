@@ -12,11 +12,6 @@ class UE_API UMonsterAnimInstance : public UAnimInstance
 public:
 	UMonsterAnimInstance();
 
-public:
-	FString& Get_AnimName() { return m_strCurrentAnimType; }
-
-	void Set_AnimName(const FString& strName) { m_strCurrentAnimType = strName; }
-
 private:
 	virtual void NativeInitializeAnimation();
 
@@ -28,14 +23,8 @@ private:
 	UFUNCTION()
 	void AnimNotify_DeathEnd();
 
-	UFUNCTION()
-	void AnimNotify_AttackEnd();
-
-	UFUNCTION()
-	void AnimNotify_ShotBullet();
-
-	UFUNCTION()
-	void AnimNotify_CollisionCheck();
+public:
+	void Set_AnimName(const FString& strName);
 
 protected:
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
@@ -43,9 +32,6 @@ protected:
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	FString m_strIdle;
-
-	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	FString m_strPatrol;
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	FString m_strRun;

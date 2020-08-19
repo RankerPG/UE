@@ -4,8 +4,6 @@
 #include "GameFramework/Character.h"
 #include "Monster.generated.h"
 
-DECLARE_MULTICAST_DELEGATE(FOnAttackEndDelegate)
-
 UCLASS()
 class UE_API AMonster : public ACharacter
 {
@@ -18,28 +16,18 @@ public:
 	AMonster();
 
 public:
-	FString& Get_AnimSequence();
 	float Get_TraceRange() { return m_fTraceRange; }
 	float Get_AttackRange() { return m_fAttackRange; }
 	float Get_HP() { return m_fHP; }
 	int32 Get_PatrolNum() { return m_iPatrolNum; }
 	const FVector& Get_PatrolPos() { return m_PatrolPosArray[m_iPatrolNum]; }
-	const FVector& Get_NextPatrolPos();
+	const FVector& NextPatrolPos();
 	bool Get_PatrolEnable() { return m_bPatrolEnable; }
 
 	void Set_AnimSequence(const FString& strAnim);
 	void Set_PatrolEnable(bool bPatrolEnable) { m_bPatrolEnable = bPatrolEnable; }
 	UFUNCTION(BlueprintCallable)
 	void Add_PatrolPos(const FVector& vPos) { m_PatrolPosArray.Add(vPos); }
-
-public:
-	template <typename T>
-	void Add_AttackEndFunction(T* pObj, void(T::* func)(void))
-	{
-		FDelegateHandle handle = m_OnAttackEnd.AddUObject(pObj, func);
-		
-		m_AttackEndHandleArray.Add(handle);
-	}
 
 protected:
 	virtual void BeginPlay() override;
@@ -62,24 +50,14 @@ public:
 	virtual void Death();
 	virtual void DeathEnd();
 
-public:
-	void AttackEnd();
-
-	bool CollisionCheck(FHitResult& resultOut);
-
 protected:
 	UPROPERTY(category = Monster, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class ASpawnPoint* m_pSpawnPoint;
 
 	class UMonsterAnimInstance* m_pAnim;
 
-	class AMinionAIController* m_pController;
-
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	TArray<FVector> m_PatrolPosArray;
-
-	FOnAttackEndDelegate m_OnAttackEnd;
-	TArray<FDelegateHandle> m_AttackEndHandleArray;
 
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	int32 m_iPatrolNum;
@@ -94,9 +72,6 @@ protected:
 
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float m_fAttackRange;
-
-	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	float m_fAttackDelay;
 
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float m_fAttackPoint;
