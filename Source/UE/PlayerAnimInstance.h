@@ -47,6 +47,9 @@ public:
 	UFUNCTION()
 		void AnimNotify_DashEnd();
 
+	UFUNCTION()
+		void AnimNotify_AttackToDash();
+
 public:
 	UPlayerAnimInstance();
 

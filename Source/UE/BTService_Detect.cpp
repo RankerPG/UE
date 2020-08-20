@@ -34,9 +34,10 @@ void UBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 
 #if ENABLE_DRAW_DEBUG
 
-	FColor DrawColor = bCollision ? FColor::Red : FColor::Green;
+	FColor DrawColor = bCollision ? FColor::Red : FColor::Blue;
 
 	DrawDebugSphere(GetWorld(), pMonster->GetActorLocation(), fTraceRange, 10, DrawColor, false, 1.f);
+
 #endif
 
 	if (bCollision)

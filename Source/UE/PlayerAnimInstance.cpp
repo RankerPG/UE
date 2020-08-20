@@ -74,6 +74,10 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		{
 
 		}
+		else if (m_strArray[(int)EPlayerAnimType::Dash] == m_strCurrentAnimType)
+		{
+
+		}
 		else
 		{
 			if (m_strArray[(int)EPlayerAnimType::Jump] == m_strCurrentAnimType)
@@ -84,8 +88,7 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 			{
 				if (0.f < fSpeed)
 				{
-					if (m_strArray[(int)EPlayerAnimType::Dash] != m_strCurrentAnimType)
-						m_strCurrentAnimType = m_strArray[(int)EPlayerAnimType::Run];
+					m_strCurrentAnimType = m_strArray[(int)EPlayerAnimType::Run];
 				}
 				else if (m_strArray[(int)EPlayerAnimType::Hit] != m_strCurrentAnimType
 					&& m_strArray[(int)EPlayerAnimType::Dash] != m_strCurrentAnimType)
@@ -145,7 +148,7 @@ void UPlayerAnimInstance::AnimNotify_CollisionCheck()
 
 		if (bCollision)
 		{
-			for (auto result : resultArray)
+			for (auto& result : resultArray)
 			{
 				FActorSpawnParameters tSpawnParams;
 
@@ -196,6 +199,11 @@ void UPlayerAnimInstance::AnimNotify_DashEnd()
 	{
 		pPlayer->Dash_End();
 	}
+}
+
+void UPlayerAnimInstance::AnimNotify_AttackToDash()
+{
+	m_strCurrentAnimType = m_strDash;
 }
 
 void UPlayerAnimInstance::Set_AttackType()

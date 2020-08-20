@@ -56,7 +56,7 @@ APlayerCharacter::APlayerCharacter()
 		m_pWeaponClass = WeaponClass.Class;
 	}
 
-	m_fAttackRange = 500.f;
+	m_fAttackRange = 250.f; //half
 
 	m_fAttackPoint = 20.f;
 
@@ -122,7 +122,12 @@ void APlayerCharacter::Move_Forward(float fScale)
 	if (!IsValid(m_pAnim))
 		return;
 
-	if (0.f == fScale || TEXT("Hit") == m_pAnim->Get_AnimType())
+	FString strAnimType = m_pAnim->Get_AnimType();
+
+	if (TEXT("Dash") == strAnimType)
+		return;
+
+	if (0.f == fScale || TEXT("Hit") == strAnimType)
 	{
 		ERunType type = m_pAnim->Get_RunType();
 
@@ -132,7 +137,7 @@ void APlayerCharacter::Move_Forward(float fScale)
 		return;
 	}
 
-	if (TEXT("Idle") == m_pAnim->Get_AnimType() || TEXT("Run") == m_pAnim->Get_AnimType())
+	if (TEXT("Idle") == strAnimType || TEXT("Run") == strAnimType)
 	{
 		AddMovementInput(GetActorForwardVector(), fScale);
 
@@ -147,10 +152,12 @@ void APlayerCharacter::Move_Side(float fScale)
 	if (!IsValid(m_pAnim))
 		return;
 
-	if (0.f == fScale || TEXT("Hit") == m_pAnim->Get_AnimType() || TEXT("Dash") == m_pAnim->Get_AnimType())
+	FString strAnimType = m_pAnim->Get_AnimType();
+
+	if (0.f == fScale || TEXT("Hit") == strAnimType || TEXT("Dash") == strAnimType)
 		return;
 
-	if (TEXT("Idle") == m_pAnim->Get_AnimType() || TEXT("Run") == m_pAnim->Get_AnimType())
+	if (TEXT("Idle") == strAnimType || TEXT("Run") == strAnimType)
 	{
 		AddMovementInput(GetActorRightVector(), fScale);
 
@@ -258,24 +265,31 @@ bool APlayerCharacter::CollisionCheck(TArray<FHitResult>& resultOut)
 {
 	FCollisionQueryParams tParams(NAME_None, false, this);
 
-	bool bCollision = GetWorld()->SweepMultiByChannel(resultOut, GetActorLocation(), GetActorLocation() + GetActorForwardVector() * m_fAttackRange, FQuat::Identity
-		, (ECollisionChannel)CollisionPlayerAttack, FCollisionShape::MakeSphere(100.f), tParams);
+	FVector vForward = GetActorForwardVector();
+	FVector vLoc = GetActorLocation() + vForward * m_fAttackRange;
+	FVector vBox(m_fAttackRange, 150.f, 200.f);
+	FRotator rot = GetActorRotation();
+
+
+	bool bCollision = GetWorld()->SweepMultiByChannel(resultOut, vLoc, vLoc, rot.Quaternion()
+		, (ECollisionChannel)CollisionPlayerAttack, FCollisionShape::MakeBox(vBox), tParams);
 
 #if ENABLE_DRAW_DEBUG
 
-	FVector vCenter = GetActorLocation() + GetActorForwardVector() * (m_fAttackRange / 2.f);
+	FVector vCenter = vLoc;
 
 	FColor DrawColor = bCollision ? FColor::Red : FColor::Green;
 
-	DrawDebugCapsule(GetWorld(), vCenter, m_fAttackRange / 2.f, 100.f, FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat(), DrawColor, false, 2.f);
-
+	DrawDebugBox(GetWorld(), vCenter, vBox, DrawColor, false, 2.f);
 #endif
 
 	if (bCollision)
 	{
 		FDamageEvent tEvent;
 
-		for (auto result : resultOut)
+		LOGW(TEXT("CollCnt : %d"), resultOut.Num());
+
+		for (auto& result : resultOut)
 		{
 			result.GetActor()->TakeDamage(m_fAttackPoint, tEvent, GetController(), this);
 
@@ -299,12 +313,11 @@ void APlayerCharacter::Move_Dash()
 
 	ERunType type = m_pAnim->Get_RunType();
 
-
-	LOG(Warning, TEXT("%d"), type);
-
 	FVector vDashDir;
 
 	FRotator rot = m_pMesh->GetRelativeRotation();
+
+	LOGW(TEXT("type : %d"), type);
 
 	switch (type)
 	{
@@ -346,4 +359,6 @@ void APlayerCharacter::Dash_End()
 	FRotator rot = m_pMesh->GetRelativeRotation() + m_rotDash;
 
 	m_pMesh->SetRelativeRotation(rot);
+
+	rot = FRotator::ZeroRotator;
 }
