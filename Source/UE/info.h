@@ -14,6 +14,13 @@ DECLARE_LOG_CATEGORY_EXTERN(UE6, Log, All);
 #define LOGW(Format, ...) UE_LOG(UE6, Warning, TEXT("%s : %s"), *LOG_CALLINFO, *FString::Printf(Format, ##__VA_ARGS__))
 
 UENUM(BlueprintType)
+enum class EPlayerJob : uint8
+{
+	KNINGHT,
+	SHOOTER,
+};
+
+UENUM(BlueprintType)
 enum class EPlayerAnimType : uint8
 {
 	Idle,
@@ -22,11 +29,10 @@ enum class EPlayerAnimType : uint8
 	Death,
 	Jump,
 	Hit,
-	Dash,
-	Skill,
-	Skill2,
-	Skill3,
-	Skill4,
+	Evade,
+	Skill_Q,
+	Skill_E,
+	Skill_R,
 };
 
 UENUM(BlueprintType)
@@ -54,11 +60,7 @@ enum class ERunType : uint8
 {
 	RunNone,
 	RunFront,
-	RunFrontLeft,
-	RunFrontRight,
 	RunBack,
-	RunBackLeft,
-	RunBackRight,
 	RunLeft,
 	RunRight,
 };

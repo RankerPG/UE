@@ -15,11 +15,10 @@ UPlayerAnimInstance::UPlayerAnimInstance()
 	m_strArray.Add(TEXT("Death"));
 	m_strArray.Add(TEXT("Jump"));
 	m_strArray.Add(TEXT("Hit"));
-	m_strArray.Add(TEXT("Dash"));
-	m_strArray.Add(TEXT("Skill"));
-	m_strArray.Add(TEXT("Skill2"));
-	m_strArray.Add(TEXT("Skill3"));
-	m_strArray.Add(TEXT("Skill4"));
+	m_strArray.Add(TEXT("Evade"));
+	m_strArray.Add(TEXT("Skill_Q"));
+	m_strArray.Add(TEXT("Skill_E"));
+	m_strArray.Add(TEXT("Skill_R"));
 
 	m_strIdle = m_strArray[0];
 	m_strRun = m_strArray[1];
@@ -27,39 +26,55 @@ UPlayerAnimInstance::UPlayerAnimInstance()
 	m_strDeath = m_strArray[3];
 	m_strJump = m_strArray[4];
 	m_strHit = m_strArray[5];
-	m_strDash = m_strArray[6];
-	m_strSkill = m_strArray[7];
-	m_strSkill2 = m_strArray[8];
-	m_strSkill3 = m_strArray[9];
-	m_strSkill4 = m_strArray[10];
-
-	m_iAttack = (int32)EAttackType::AttackNone;
+	m_strEvade = m_strArray[6];
+	m_strSkill_Q = m_strArray[7];
+	m_strSkill_E = m_strArray[8];
+	m_strSkill_R = m_strArray[9];
 
 	m_iDir = 0;
 
 	m_eRunType = ERunType::RunNone;
 
-	m_isAttackEnable = true;
+	m_fSpeed = 0.f;
+
+	m_fBeforeSpeed = 0.f;
+
+	m_isJumpEnable = true;
 
 	m_isFalling = false;
+
+	m_isJumpAttack = false;
 }
 
 void UPlayerAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
+
+	m_pPlayer = Cast<APlayerCharacter>(TryGetPawnOwner());
 }
 
 void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
-	auto pPlayer = Cast<APlayerCharacter>(TryGetPawnOwner());
-
-	if (IsValid(pPlayer))
+	if (IsValid(m_pPlayer))
 	{
-		float fSpeed = pPlayer->GetVelocity().Size();
+		m_fBeforeSpeed = m_fSpeed;
 
-		m_isFalling = pPlayer->GetCharacterMovement()->IsFalling();
+		{
+			m_isAccelerating = m_fSpeed - m_fBeforeSpeed >= 0.f ? true : false;
+
+			if (0.f == m_fSpeed)
+				m_isAccelerating = false;
+			else if (m_fSpeed - m_fBeforeSpeed >= 0.f)
+				m_isAccelerating = true;
+			else
+				m_isAccelerating = false;
+		}
+
+		m_fSpeed = m_pPlayer->GetVelocity().Size();
+
+		m_isFalling = m_pPlayer->GetMovementComponent()->IsFalling();
 
 		if (true == m_isFalling && m_strArray[(int)EPlayerAnimType::Jump] != m_strCurrentAnimType)
 		{
@@ -68,13 +83,19 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 		if (m_strArray[(int)EPlayerAnimType::Attack] == m_strCurrentAnimType)
 		{
-
+			
 		}
-		else if (m_strArray[(int)EPlayerAnimType::Skill] == m_strCurrentAnimType)
+		else if (m_strArray[(int)EPlayerAnimType::Skill_Q] == m_strCurrentAnimType)
 		{
 
 		}
-		else if (m_strArray[(int)EPlayerAnimType::Dash] == m_strCurrentAnimType)
+		else if (m_strArray[(int)EPlayerAnimType::Evade] == m_strCurrentAnimType)
+		{
+			m_pPlayer->Evade_Move();
+
+			m_isAccelerating = false;
+		}
+		else if (m_strArray[(int)EPlayerAnimType::Hit] == m_strCurrentAnimType)
 		{
 
 		}
@@ -86,68 +107,99 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 			}
 			else
 			{
-				if (0.f < fSpeed)
+				if (0.f < m_fSpeed)
 				{
 					m_strCurrentAnimType = m_strArray[(int)EPlayerAnimType::Run];
 				}
-				else if (m_strArray[(int)EPlayerAnimType::Hit] != m_strCurrentAnimType
-					&& m_strArray[(int)EPlayerAnimType::Dash] != m_strCurrentAnimType)
+				else
 				{
-					m_eRunType = ERunType::RunNone;
-
 					m_strCurrentAnimType = m_strArray[(int)EPlayerAnimType::Idle];
+
+					m_eRunType = ERunType::RunNone;
 				}
 			}
 		}
 	}
 }
 
+void UPlayerAnimInstance::Add_Yaw(float fDirection)
+{
+	float fDelta = GetWorld()->GetDeltaSeconds();
+
+	float fPerYaw = 450.f; // 0.1초에 45도 회전
+
+	if (0.f == fDirection)
+	{
+		if (m_fYaw > 5.f)
+			m_fYaw -= fPerYaw * fDelta;
+		else if(m_fYaw < -5.f)
+			m_fYaw += fPerYaw * fDelta;
+		else
+			m_fYaw = 0.f;
+	}
+
+	m_fYaw += fPerYaw * fDirection * fDelta;
+
+	if (-45.f > m_fYaw)
+		m_fYaw = -45.f;
+	else if (45.f < m_fYaw)
+		m_fYaw = 45.f;
+}
+
 void UPlayerAnimInstance::AnimNotify_AttackToIdle()
 {
-	m_strCurrentAnimType = m_strArray[(int)EPlayerAnimType::Idle];
-	m_isAttackEnable = true;
-	m_iAttack = 0;
+	
 }
 
 void UPlayerAnimInstance::AnimNotify_AttackEnable()
 {
-	m_isAttackEnable = true;
+	m_pPlayer->Set_Attacking(false);
+}
+
+void UPlayerAnimInstance::AnimNotify_JumpEntry()
+{
+	m_isJumpEnable = false;
 }
 
 void UPlayerAnimInstance::AnimNotify_JumpToIdle()
 {
 	m_strCurrentAnimType = m_strArray[(int)EPlayerAnimType::Idle];
-	m_isAttackEnable = true;
-	m_iAttack = 0;
+}
+
+void UPlayerAnimInstance::AnimNotify_JumpEnd()
+{
+	m_isJumpEnable = true;
+
+	m_isJumpAttack = false;
 }
 
 void UPlayerAnimInstance::AnimNotify_ActionToIdle()
 {
 	m_strCurrentAnimType = m_strArray[(int)EPlayerAnimType::Idle];
+
+
 }
 
 void UPlayerAnimInstance::AnimNotify_Fireball()
 {
-	auto pPlayer = Cast<APlayerCharacter>(TryGetPawnOwner());
-
-	if (IsValid(pPlayer))
+	if (IsValid(m_pPlayer))
 	{
-		pPlayer->Fireball();
+		m_pPlayer->Fireball();
 	}
 }
 
 void UPlayerAnimInstance::AnimNotify_CollisionCheck()
 {
-	auto pPlayer = Cast<APlayerCharacter>(TryGetPawnOwner());
-
-	if (IsValid(pPlayer))
+	if (IsValid(m_pPlayer))
 	{
 		TArray<FHitResult> resultArray;
 
-		bool bCollision = pPlayer->CollisionCheck(resultArray);
+		bool bCollision = m_pPlayer->CollisionCheck(resultArray);
 
 		if (bCollision)
 		{
+			int iAttackCombo = m_pPlayer->Get_AttackCombo();
+
 			for (auto& result : resultArray)
 			{
 				FActorSpawnParameters tSpawnParams;
@@ -156,7 +208,7 @@ void UPlayerAnimInstance::AnimNotify_CollisionCheck()
 
 				AEffectSound* pSound = GetWorld()->SpawnActor<AEffectSound>(result.ImpactPoint, result.ImpactNormal.Rotation(), tSpawnParams);
 
-				switch (m_iAttack)
+				switch (iAttackCombo)
 				{
 				case (int32)EAttackType::Attack1:
 					pSound->LoadAudio(TEXT("SoundWave'/Game/Sound/Hit_SwordStabEarth_Rumble1.Hit_SwordStabEarth_Rumble1'"));
@@ -181,51 +233,16 @@ void UPlayerAnimInstance::AnimNotify_CollisionCheck()
 	}
 }
 
-void UPlayerAnimInstance::AnimNotify_Dash()
+void UPlayerAnimInstance::AnimNotify_EvadeEnd()
 {
-	auto pPlayer = Cast<APlayerCharacter>(TryGetPawnOwner());
-
-	if (IsValid(pPlayer))
-	{
-		pPlayer->Move_Dash();
-	}
-}
-
-void UPlayerAnimInstance::AnimNotify_DashEnd()
-{
-	auto pPlayer = Cast<APlayerCharacter>(TryGetPawnOwner());
-
-	if (IsValid(pPlayer))
-	{
-		pPlayer->Dash_End();
-	}
+	m_pPlayer->Set_Evading(false);
 }
 
 void UPlayerAnimInstance::AnimNotify_AttackToDash()
 {
-	m_strCurrentAnimType = m_strDash;
+	m_strCurrentAnimType = m_strEvade;
 }
 
 void UPlayerAnimInstance::Set_AttackType()
 {
-	if (m_isAttackEnable)
-	{
-		m_isAttackEnable = false;
-
-		switch (m_iAttack)
-		{
-		case (int32)EAttackType::AttackNone:
-			m_iAttack = (int32)EAttackType::Attack1;
-			break;
-		case (int32)EAttackType::Attack1:
-			m_iAttack = (int32)EAttackType::Attack2;
-			break;
-		case (int32)EAttackType::Attack2:
-			m_iAttack = (int32)EAttackType::Attack3;
-			break;
-		case (int32)EAttackType::Attack3:
-			m_iAttack = (int32)EAttackType::Attack4;
-			break;
-		}
-	}
 }

@@ -1,18 +1,18 @@
 #include "PlayerCharacter.h"
 #include "PlayerAnimInstance.h"
-#include "Weapon.h"
 #include "SkillProjectile.h"
 #include "DrawDebugHelpers.h"
 #include "Monster.h"
 #include "SkillEffect.h"
+#include "UEGameInstance.h"
+#include "UEGamemodeBase.h"
+#include "MainWidget.h"
 
-// Sets default values
 APlayerCharacter::APlayerCharacter()
 {
-	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshFinder(TEXT("SkeletalMesh'/Game/Player/ParagonShinbi/Characters/Heroes/Shinbi/Meshes/Shinbi.Shinbi'"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshFinder(TEXT("SkeletalMesh'/Game/ParagonAurora/Characters/Heroes/Aurora/Meshes/Aurora.Aurora'"));
 
 	if (MeshFinder.Succeeded())
 	{
@@ -21,15 +21,17 @@ APlayerCharacter::APlayerCharacter()
 
 	GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -88.f));
 	GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	m_pMesh = GetMesh();
 
-	ConstructorHelpers::FClassFinder<UPlayerAnimInstance> ClassFinder(TEXT("AnimBlueprint'/Game/Player/BP_Anim.BP_Anim_C'"));
+	// 터짐
+	//static ConstructorHelpers::FClassFinder<UPlayerAnimInstance> ClassFinder(TEXT("AnimBlueprint'/Game/Player/BP_AuroraAnim.BP_AuroraAnim_C'"));
 
-	if (ClassFinder.Succeeded())
-	{
-		GetMesh()->SetAnimInstanceClass(ClassFinder.Class);
-	}
+	//if (ClassFinder.Succeeded())
+	//{
+	//	GetMesh()->SetAnimInstanceClass(ClassFinder.Class);
+	//}
 
 	m_pSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	m_pSpringArm->SetupAttachment(RootComponent);
@@ -44,23 +46,17 @@ APlayerCharacter::APlayerCharacter()
 	m_pSpringArm->bDoCollisionTest = false;
 
 	GetCharacterMovement()->JumpZVelocity = 600.f;
-	GetCharacterMovement()->MaxWalkSpeed = 1000.f;
-
-	//
-	m_pWeapon = nullptr;
-
-	ConstructorHelpers::FClassFinder<AWeapon> WeaponClass(TEXT("Blueprint'/Game/Item/BP_Weapon.BP_Weapon_C'"));
-
-	if (WeaponClass.Succeeded())
-	{
-		m_pWeaponClass = WeaponClass.Class;
-	}
-
-	m_fAttackRange = 250.f; //half
-
-	m_fAttackPoint = 20.f;
+	GetCharacterMovement()->MaxWalkSpeed = 3000.f;
 
 	GetCapsuleComponent()->SetCollisionProfileName(TEXT("Player"));
+
+	m_iAttackCombo = 0;
+
+	m_isAttacking = false;
+
+	m_isSaveAttack = false;
+
+	m_isEvading = false;
 }
 
 void APlayerCharacter::BeginPlay()
@@ -69,11 +65,20 @@ void APlayerCharacter::BeginPlay()
 
 	m_pAnim = Cast<UPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 
-	m_pWeapon = GetWorld()->SpawnActor<AWeapon>(m_pWeaponClass);
+	UUEGameInstance* pInstance = Cast<UUEGameInstance>(GetGameInstance());
+	FSaveCharacterInfo* pInfo = pInstance->Get_CharacterInfo();
 
-	m_pWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("weapon_l"));
-
-	m_pWeapon->Load_Weapon(TEXT("StaticMesh'/Game/Item/Weapon_Pack/Mesh/Weapons/Weapons_Kit/SM_Sword.SM_Sword'"));
+	m_eJob = pInfo->Job;
+	m_fAttackPoint = pInfo->AttackPoint;
+	m_fArmorPoint = pInfo->ArmorPoint;
+	m_fAttackRange = pInfo->AttackRange;
+	m_fHP = pInfo->HP;
+	m_fHPMax = pInfo->HPMax;
+	m_fMP = pInfo->MP;
+	m_fMPMax = pInfo->MPMax;
+	m_iLevel = pInfo->Level;
+	m_iExp = pInfo->Exp;
+	m_iMoney = pInfo->Money;
 }
 
 void APlayerCharacter::Tick(float DeltaTime)
@@ -97,12 +102,10 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		, &APlayerCharacter::Action_Jump);
 	PlayerInputComponent->BindAction<APlayerCharacter>(TEXT("Action_Attack"), EInputEvent::IE_Pressed, this
 		, &APlayerCharacter::Action_Attack);
-	PlayerInputComponent->BindAction<APlayerCharacter>(TEXT("Drop_Weapon"), EInputEvent::IE_Pressed, this
-		, &APlayerCharacter::Action_DropWeapon);
 	PlayerInputComponent->BindAction<APlayerCharacter>(TEXT("Skill_1"), EInputEvent::IE_Pressed, this
 		, &APlayerCharacter::Action_Skill_1);
-	PlayerInputComponent->BindAction<APlayerCharacter>(TEXT("Dash"), EInputEvent::IE_Pressed, this
-		, &APlayerCharacter::Action_Dash);
+	PlayerInputComponent->BindAction<APlayerCharacter>(TEXT("Evade"), EInputEvent::IE_Pressed, this
+		, &APlayerCharacter::Action_Evade);
 }
 
 float APlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
@@ -114,6 +117,19 @@ float APlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const
 
 	m_pAnim->Set_AnimType(EPlayerAnimType::Hit);
 
+	fDamage = fDamage - m_fArmorPoint;
+	fDamage = fDamage > 0.f ? fDamage : 1.f;
+
+	m_fHP -= fDamage;
+
+	FString str = FString::Printf(TEXT("hp : %f"), m_fHP);
+
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, str);
+
+	AUEGameModeBase* pGameMode = Cast<AUEGameModeBase>(GetWorld()->GetAuthGameMode());
+
+	pGameMode->Get_MainWidget()->Set_HPBar(m_fHP / m_fHPMax);
+
 	return fDamage;
 }
 
@@ -124,7 +140,7 @@ void APlayerCharacter::Move_Forward(float fScale)
 
 	FString strAnimType = m_pAnim->Get_AnimType();
 
-	if (TEXT("Dash") == strAnimType)
+	if (TEXT("Evade") == strAnimType)
 		return;
 
 	if (0.f == fScale || TEXT("Hit") == strAnimType)
@@ -154,8 +170,11 @@ void APlayerCharacter::Move_Side(float fScale)
 
 	FString strAnimType = m_pAnim->Get_AnimType();
 
-	if (0.f == fScale || TEXT("Hit") == strAnimType || TEXT("Dash") == strAnimType)
+	if (0.f == fScale || TEXT("Hit") == strAnimType || TEXT("Evade") == strAnimType)
+	{
+		m_pAnim->Add_Yaw(0.f);
 		return;
+	}
 
 	if (TEXT("Idle") == strAnimType || TEXT("Run") == strAnimType)
 	{
@@ -165,19 +184,13 @@ void APlayerCharacter::Move_Side(float fScale)
 
 		ERunType type = ERunType::RunNone;
 
-		if (ERunType::RunFront == curType)
-		{
-			type = fScale > 0.f ? ERunType::RunFrontRight : ERunType::RunFrontLeft;
+		GetWorld()->GetDeltaSeconds();
 
-			m_pAnim->Set_RunType(type);
-		}
-		else if (ERunType::RunBack == curType)
-		{
-			type = fScale > 0.f ? ERunType::RunBackRight : ERunType::RunBackLeft;
+		float fDirection = fScale > 0.f ? 1.f : -1.f;
 
-			m_pAnim->Set_RunType(type);
-		}
-		else
+		m_pAnim->Add_Yaw(fDirection);
+
+		if (ERunType::RunFront != curType && ERunType::RunBack != curType)
 		{
 			type = fScale > 0.f ? ERunType::RunRight : ERunType::RunLeft;
 
@@ -205,7 +218,7 @@ void APlayerCharacter::Mouse_Wheel(float fScale)
 
 void APlayerCharacter::Action_Jump()
 {
-	if (TEXT("Jump") == m_pAnim->Get_AnimType())
+	if (false == m_pAnim->Get_JumpEnable())
 		return;
 
 	Jump();
@@ -215,34 +228,47 @@ void APlayerCharacter::Action_Jump()
 
 void APlayerCharacter::Action_Attack()
 {
-	m_pAnim->Set_AnimType(EPlayerAnimType::Attack);
+	//if (false == m_isAttacking)
+	//{
+	//	switch (m_iAttackCombo)
+	//	{
+	//	case (int32)EAttackType::AttackNone:
+	//		m_iAttackCombo = (int32)EAttackType::Attack1;
+	//		break;
+	//	case (int32)EAttackType::Attack1:
+	//		m_iAttackCombo = (int32)EAttackType::Attack2;
+	//		break;
+	//	case (int32)EAttackType::Attack2:
+	//		m_iAttackCombo = (int32)EAttackType::Attack3;
+	//		break;
+	//	case (int32)EAttackType::Attack3:
+	//		m_iAttackCombo = (int32)EAttackType::Attack4;
+	//		break;
+	//	}
+	//}
+	//else
+	//{
+	//	m_isSaveAttack = true;
+	//}
 
-	m_pAnim->Set_AttackType();
-}
+	//m_pAnim->Set_AnimType(EPlayerAnimType::Attack);
 
-void APlayerCharacter::Action_DropWeapon()
-{
-	if (IsValid(m_pWeapon))
-	{
-		m_pWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-
-		m_pWeapon->Drop();
-
-		m_pWeapon = nullptr;
-	}
+	//m_pAnim->Set_AttackType();
 }
 
 void APlayerCharacter::Action_Skill_1()
 {
-	m_pAnim->Set_AnimType(EPlayerAnimType::Skill);
+	m_pAnim->Set_AnimType(EPlayerAnimType::Skill_Q);
 }
 
-void APlayerCharacter::Action_Dash()
+void APlayerCharacter::Action_Evade()
 {
-	if (TEXT("Dash") == m_pAnim->Get_AnimType())
+	if (TEXT("Evade") == m_pAnim->Get_AnimType())
 		return;
 
-	m_pAnim->Set_AnimType(EPlayerAnimType::Dash);
+	m_pAnim->Set_AnimType(EPlayerAnimType::Evade);
+
+	m_isEvading = true;
 }
 
 void APlayerCharacter::Fireball()
@@ -307,58 +333,41 @@ bool APlayerCharacter::CollisionCheck(TArray<FHitResult>& resultOut)
 	return bCollision;
 }
 
-void APlayerCharacter::Move_Dash()
+void APlayerCharacter::Evade_Move()
 {
-	FVector vLoc = GetActorLocation();
+	if (false == m_isEvading)
+		return;
 
 	ERunType type = m_pAnim->Get_RunType();
 
-	FVector vDashDir;
+	float fScale = 1500.f * GetWorld()->GetDeltaSeconds(); // 0.55초 움직이므로 절반정도 움직인다고 보면 된다.
 
-	FRotator rot = m_pMesh->GetRelativeRotation();
-
-	LOGW(TEXT("type : %d"), type);
+	FVector vLoc = GetActorLocation();
 
 	switch (type)
 	{
 	case ERunType::RunNone:
 	case ERunType::RunFront:
-	case ERunType::RunFrontLeft:
-	case ERunType::RunFrontRight:
-		vDashDir = GetActorForwardVector();
-		m_rotDash = FRotator::ZeroRotator;
+		vLoc += GetActorForwardVector() * fScale;
 		break;
 	case ERunType::RunBack:
-	case ERunType::RunBackLeft:
-	case ERunType::RunBackRight:
-		vDashDir = -GetActorForwardVector();
-		rot += m_rotDash = FRotator(0.f, -180.f, 0.f);
-		m_pMesh->SetRelativeRotation(rot);
+		vLoc -= GetActorForwardVector() * fScale;
 		break;
 	case ERunType::RunLeft:
-		vDashDir = -GetActorRightVector();
-		rot += FRotator(0.f, -90.f, 0.f);
-		m_rotDash = FRotator(0.f, 90.f, 0.f);
-		m_pMesh->SetRelativeRotation(rot);
+		vLoc -= GetActorRightVector() * fScale;
 		break;
 	case ERunType::RunRight:
-		vDashDir = GetActorRightVector();
-		rot += FRotator(0.f, 90.f, 0.f);
-		m_rotDash = FRotator(0.f, -90.f, 0.f);
-		m_pMesh->SetRelativeRotation(rot);
+		vLoc += GetActorRightVector() * fScale;
 		break;
 	}
-
-	vLoc += vDashDir * 1500.f;
 
 	SetActorLocation(vLoc);
 }
 
-void APlayerCharacter::Dash_End()
+void APlayerCharacter::ResetPrimaryAttack()
 {
-	FRotator rot = m_pMesh->GetRelativeRotation() + m_rotDash;
+	m_iAttackCombo = 0;
 
-	m_pMesh->SetRelativeRotation(rot);
-
-	rot = FRotator::ZeroRotator;
+	m_isAttacking = false;
+	m_isSaveAttack = false;
 }

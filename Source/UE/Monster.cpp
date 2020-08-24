@@ -169,7 +169,7 @@ bool AMonster::CollisionCheck(FHitResult& resultOut)
 		FDamageEvent damageEvent;
 
 		//Damage parameter
-		resultOut.GetActor()->TakeDamage(10.f, damageEvent, m_pController, this);
+		resultOut.GetActor()->TakeDamage(20.f, damageEvent, m_pController, this);
 
 		// Add Effect
 	}
