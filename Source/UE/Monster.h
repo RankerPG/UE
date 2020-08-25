@@ -18,19 +18,22 @@ public:
 	AMonster();
 
 public:
-	FString& Get_AnimSequence();
+	FString& Get_AnimType();
+	const FVector& Get_PatrolPos() { return m_PatrolPosArray[m_iPatrolNum]; }
+	const FVector& Get_NextPatrolPos();
+	ECharacterState Get_State() { return m_eState; }
+	int32 Get_PatrolNum() { return m_iPatrolNum; }
 	float Get_TraceRange() { return m_fTraceRange; }
 	float Get_AttackRange() { return m_fAttackRange; }
 	float Get_HP() { return m_fHP; }
-	int32 Get_PatrolNum() { return m_iPatrolNum; }
-	const FVector& Get_PatrolPos() { return m_PatrolPosArray[m_iPatrolNum]; }
-	const FVector& Get_NextPatrolPos();
+
 	bool Get_PatrolEnable() { return m_bPatrolEnable; }
 
 	void Set_AnimSequence(const FString& strAnim);
 	void Set_PatrolEnable(bool bPatrolEnable) { m_bPatrolEnable = bPatrolEnable; }
 	UFUNCTION(BlueprintCallable)
 		void Add_PatrolPos(const FVector& vPos) { m_PatrolPosArray.Add(vPos); }
+	void Set_Frozen(float fFrozenTime);
 
 public:
 	template <typename T>
@@ -45,7 +48,6 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
 
-public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -56,10 +58,6 @@ public:
 public:
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser);
 
-	UFUNCTION()
-		virtual void CollsionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-
-	virtual void Death();
 	virtual void DeathEnd();
 
 public:
@@ -71,21 +69,27 @@ protected:
 	UPROPERTY(category = Monster, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		class ASpawnPoint* m_pSpawnPoint;
 
-	class UMonsterAnimInstance* m_pAnim;
-
-	class AMinionAIController* m_pController;
+	UPROPERTY(category = Mesh, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USkeletalMeshComponent* m_pMesh;
 
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		TArray<FVector> m_PatrolPosArray;
 
-	FOnAttackEndDelegate m_OnAttackEnd;
-	TArray<FDelegateHandle> m_AttackEndHandleArray;
-
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		int32 m_iPatrolNum;
 
+	class AMinionAIController* m_pController;
+
+	class UMonsterAnimInstance* m_pAnim;
+
+	FOnAttackEndDelegate m_OnAttackEnd;
+	TArray<FDelegateHandle> m_AttackEndHandleArray;
+
+	ECharacterState m_eState;
+
 	bool m_bPatrolEnable;
 
+protected: // status
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		FString m_strMonsterName;
 

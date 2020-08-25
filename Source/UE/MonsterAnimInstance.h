@@ -37,6 +37,9 @@ private:
 	UFUNCTION()
 		void AnimNotify_CollisionCheck();
 
+private:
+	class AMonster* m_pMonster;
+
 protected:
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		FString m_strCurrentAnimType;
@@ -58,6 +61,9 @@ protected:
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		FString m_strDeath;
+
+	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		FString m_strStun;
 
 	TArray<FString> m_strArray;
 };

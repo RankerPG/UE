@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "info.h"
@@ -16,23 +14,14 @@ public:
 
 public:
 	FString Get_AnimType() { return m_strCurrentAnimType; }
-
 	ERunType Get_RunType() { return m_eRunType; }
-
 	bool Get_JumpEnable() { return m_isJumpEnable; }
 
 	void Set_AnimType(EPlayerAnimType eAnimType) { m_strCurrentAnimType = m_strArray[(int)eAnimType]; }
-
-	void Set_AttackType();
-
+	void Set_RunType(ERunType eRunType) { m_eRunType = eRunType; }
 	void Add_Yaw(float fDirection);
 
-	void Set_RunType(ERunType eRunType) { m_eRunType = eRunType; }
-
 public:
-	UFUNCTION()
-		void AnimNotify_AttackToIdle();
-
 	UFUNCTION()
 		void AnimNotify_AttackEnable();
 
@@ -87,7 +76,7 @@ protected:
 		FString m_strJump;
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-		FString m_strHit;
+		FString m_strStun;
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		FString m_strEvade;
@@ -105,6 +94,9 @@ protected:
 
 	//
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+		ERunType m_eRunType;
+
+	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		int32 m_iDir;
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
@@ -112,11 +104,6 @@ protected:
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		float m_fYaw;
-
-	float m_fBeforeSpeed;
-
-	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-		ERunType m_eRunType;
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		bool m_isFalling;
@@ -126,6 +113,8 @@ protected:
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		bool m_isJumpAttack;
+
+	float m_fBeforeSpeed;
 
 	bool m_isJumpEnable;
 };

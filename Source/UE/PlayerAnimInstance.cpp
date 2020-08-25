@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "PlayerAnimInstance.h"
 #include "PlayerCharacter.h"
 #include "EffectSound.h"
@@ -14,7 +11,7 @@ UPlayerAnimInstance::UPlayerAnimInstance()
 	m_strArray.Add(TEXT("Attack"));
 	m_strArray.Add(TEXT("Death"));
 	m_strArray.Add(TEXT("Jump"));
-	m_strArray.Add(TEXT("Hit"));
+	m_strArray.Add(TEXT("Stun"));
 	m_strArray.Add(TEXT("Evade"));
 	m_strArray.Add(TEXT("Skill_Q"));
 	m_strArray.Add(TEXT("Skill_E"));
@@ -25,7 +22,7 @@ UPlayerAnimInstance::UPlayerAnimInstance()
 	m_strAttack = m_strArray[2];
 	m_strDeath = m_strArray[3];
 	m_strJump = m_strArray[4];
-	m_strHit = m_strArray[5];
+	m_strStun = m_strArray[5];
 	m_strEvade = m_strArray[6];
 	m_strSkill_Q = m_strArray[7];
 	m_strSkill_E = m_strArray[8];
@@ -61,16 +58,14 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	{
 		m_fBeforeSpeed = m_fSpeed;
 
-		{
-			m_isAccelerating = m_fSpeed - m_fBeforeSpeed >= 0.f ? true : false;
+		m_isAccelerating = m_fSpeed - m_fBeforeSpeed >= 0.f ? true : false;
 
-			if (0.f == m_fSpeed)
-				m_isAccelerating = false;
-			else if (m_fSpeed - m_fBeforeSpeed >= 0.f)
-				m_isAccelerating = true;
-			else
-				m_isAccelerating = false;
-		}
+		if (0.f == m_fSpeed)
+			m_isAccelerating = false;
+		else if (m_fSpeed - m_fBeforeSpeed >= 0.f)
+			m_isAccelerating = true;
+		else
+			m_isAccelerating = false;
 
 		m_fSpeed = m_pPlayer->GetVelocity().Size();
 
@@ -81,21 +76,27 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 			m_strCurrentAnimType = m_strArray[(int)EPlayerAnimType::Jump];
 		}
 
-		if (m_strArray[(int)EPlayerAnimType::Attack] == m_strCurrentAnimType)
+		if (m_strArray[(int)EPlayerAnimType::Skill_Q] == m_strCurrentAnimType)
 		{
-			
+
 		}
-		else if (m_strArray[(int)EPlayerAnimType::Skill_Q] == m_strCurrentAnimType)
+		else if (m_strArray[(int)EPlayerAnimType::Skill_E] == m_strCurrentAnimType)
+		{
+
+		}
+		else if (m_strArray[(int)EPlayerAnimType::Skill_R] == m_strCurrentAnimType)
 		{
 
 		}
 		else if (m_strArray[(int)EPlayerAnimType::Evade] == m_strCurrentAnimType)
 		{
+			StopAllMontages(0.1f);
+
 			m_pPlayer->Evade_Move();
 
 			m_isAccelerating = false;
 		}
-		else if (m_strArray[(int)EPlayerAnimType::Hit] == m_strCurrentAnimType)
+		else if (m_strArray[(int)EPlayerAnimType::Stun] == m_strCurrentAnimType)
 		{
 
 		}
@@ -146,14 +147,9 @@ void UPlayerAnimInstance::Add_Yaw(float fDirection)
 		m_fYaw = 45.f;
 }
 
-void UPlayerAnimInstance::AnimNotify_AttackToIdle()
-{
-	
-}
-
 void UPlayerAnimInstance::AnimNotify_AttackEnable()
 {
-	m_pPlayer->Set_Attacking(false);
+	m_pPlayer->Reset_AttackInfo();
 }
 
 void UPlayerAnimInstance::AnimNotify_JumpEntry()
@@ -176,8 +172,6 @@ void UPlayerAnimInstance::AnimNotify_JumpEnd()
 void UPlayerAnimInstance::AnimNotify_ActionToIdle()
 {
 	m_strCurrentAnimType = m_strArray[(int)EPlayerAnimType::Idle];
-
-
 }
 
 void UPlayerAnimInstance::AnimNotify_Fireball()
@@ -241,8 +235,4 @@ void UPlayerAnimInstance::AnimNotify_EvadeEnd()
 void UPlayerAnimInstance::AnimNotify_AttackToDash()
 {
 	m_strCurrentAnimType = m_strEvade;
-}
-
-void UPlayerAnimInstance::Set_AttackType()
-{
 }

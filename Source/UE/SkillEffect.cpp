@@ -1,9 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "SkillEffect.h"
 
-// Sets default values
 ASkillEffect::ASkillEffect()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -13,7 +9,6 @@ ASkillEffect::ASkillEffect()
 	RootComponent = m_pParticle;
 }
 
-// Called when the game starts or when spawned
 void ASkillEffect::BeginPlay()
 {
 	Super::BeginPlay();
@@ -24,7 +19,6 @@ void ASkillEffect::BeginPlay()
 	}
 }
 
-// Called every frame
 void ASkillEffect::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);

@@ -29,8 +29,6 @@ AMinion::AMinion()
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	AIControllerClass = AMinionAIController::StaticClass();
-
-	m_pMesh = Cast<USkeletalMeshComponent>(GetComponentByClass(USkeletalMeshComponent::StaticClass()));
 }
 
 void AMinion::BeginPlay()

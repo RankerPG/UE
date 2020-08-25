@@ -52,7 +52,7 @@ void UBTTask_MoveTarget::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 	if (!pMonster)
 		return;
 
-	if (pMonster->Get_HP() > 0.f)
+	if (pMonster->Get_HP() > 0.f && ECharacterState::Frozen != pMonster->Get_State())
 	{
 		pMonster->Set_AnimSequence(TEXT("Run"));
 

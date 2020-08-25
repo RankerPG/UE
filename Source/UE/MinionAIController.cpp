@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "MinionAIController.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
@@ -47,6 +44,4 @@ void AMinionAIController::OnUnPossess()
 void AMinionAIController::SetBlackBoardInitiallizeData(APawn* InPawn)
 {
 	Super::SetBlackBoardInitiallizeData(InPawn);
-
-
 }

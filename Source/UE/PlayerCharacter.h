@@ -13,16 +13,16 @@ public:
 	APlayerCharacter();
 
 public:
-	void Set_Attacking(bool isAttacking) { m_isAttacking = isAttacking; }
-	void Set_Evading(bool isEvading) { m_isEvading = isEvading; }
-
+	ECharacterState Get_State() { return m_eState; }
 	int Get_AttackCombo() const { return m_iAttackCombo; }
 	bool Get_Evading() const { return m_isEvading; }
+
+	void Set_Evading(bool isEvading) { m_isEvading = isEvading; }
+	void Reset_AttackInfo();
 
 protected:
 	virtual void BeginPlay() override;
 
-public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -40,30 +40,34 @@ public:
 	//Action
 	void Action_Jump();
 	void Action_Attack();
-	void Action_Skill_1();
+	void Action_Skill_E();
 	void Action_Evade();
+	void Action_MouseEnable();
 
 public:
 	void Fireball();
 	bool CollisionCheck(TArray<FHitResult>& resultOut);
 	void Evade_Move();
+	void StunEnd();
+	void SkillE_StunAttack();
 
 	void ResetPrimaryAttack();
 
 private:
 	UPROPERTY(category = Camera, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	USpringArmComponent* m_pSpringArm;
+		USpringArmComponent* m_pSpringArm;
 
 	UPROPERTY(category = Camera, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	UCameraComponent* m_pCamera;
+		UCameraComponent* m_pCamera;
 
 	UPROPERTY(category = Mesh, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	USkeletalMeshComponent* m_pMesh;
+		USkeletalMeshComponent* m_pMesh;
 
-	class UPlayerAnimInstance* m_pAnim;
+	UPROPERTY(category = State, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		ECharacterState m_eState;
 
 	UPROPERTY(category = Attack, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	int m_iAttackCombo;
+		int m_iAttackCombo;
 
 	UPROPERTY(category = Attack, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		bool m_isAttacking;
@@ -71,9 +75,16 @@ private:
 	UPROPERTY(category = Attack, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		bool m_isSaveAttack;
 
+	UPROPERTY(category = State, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		bool m_isStun;
+
+	class UPlayerAnimInstance* m_pAnim;
+
+	FTimerHandle m_StunTimer;
+
 	bool m_isEvading;
 
-private:
+private: // status
 	UPROPERTY(category = Attack, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		EPlayerJob m_eJob;
 

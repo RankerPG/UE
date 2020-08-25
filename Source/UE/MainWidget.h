@@ -17,6 +17,14 @@ protected:
 	virtual void NativeConstruct();
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime);
 
+public:
+	UFUNCTION()
+		void Click_StatusButton();
+
 protected:
 	class UPlayerStatusHUDWidget* m_pStatusHUDWidget;
+
+	class UPlayerStatusWidget* m_pStatusWidget;
+
+	class UButton* m_pStatusButton;
 };

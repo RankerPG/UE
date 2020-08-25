@@ -11,13 +11,22 @@ DECLARE_LOG_CATEGORY_EXTERN(UE6, Log, All);
 
 #define LOG(Verbosity, Format, ...) UE_LOG(UE6, Verbosity, TEXT("%s : %s"), *LOG_CALLINFO, *FString::Printf(Format, ##__VA_ARGS__))
 
-#define LOGW(Format, ...) UE_LOG(UE6, Warning, TEXT("%s : %s"), *LOG_CALLINFO, *FString::Printf(Format, ##__VA_ARGS__))
+#define LOGW(Format, ...) UE_LOG(UE6, Warning, TEXT("%s : %s"), *LOG_CALLINFO, *FString::Printf(TEXT(Format), ##__VA_ARGS__))
 
 UENUM(BlueprintType)
 enum class EPlayerJob : uint8
 {
 	KNINGHT,
 	SHOOTER,
+};
+
+UENUM(BlueprintType)
+enum class ECharacterState : uint8
+{
+	Running, // 정상적인 실행
+	Frozen,
+	Slow,
+	Fast,
 };
 
 UENUM(BlueprintType)
@@ -28,7 +37,7 @@ enum class EPlayerAnimType : uint8
 	Attack,
 	Death,
 	Jump,
-	Hit,
+	Stun,
 	Evade,
 	Skill_Q,
 	Skill_E,
@@ -74,6 +83,8 @@ enum class EMonsterAnimType : uint8
 	Attack,
 	Hit,
 	Death,
+	Stun,
+	Frozen
 };
 
 UENUM(BlueprintType)

@@ -27,6 +27,4 @@ public:
 
 private:
 	UClass* m_BulletClass;
-
-	USkeletalMeshComponent* m_pMesh;
 };

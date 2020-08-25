@@ -39,7 +39,6 @@ APlayerCharacter::APlayerCharacter()
 	m_pCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	m_pCamera->SetupAttachment(m_pSpringArm);
 
-
 	m_pSpringArm->TargetArmLength = 700.f;
 	m_pSpringArm->TargetOffset.Z = 70.f;
 	m_pSpringArm->SetRelativeRotation(FRotator(-20.f, 0.f, 0.f));
@@ -57,6 +56,15 @@ APlayerCharacter::APlayerCharacter()
 	m_isSaveAttack = false;
 
 	m_isEvading = false;
+
+	m_eState = ECharacterState::Running;
+}
+
+void APlayerCharacter::Reset_AttackInfo()
+{
+	m_isAttacking = false;
+	m_isSaveAttack = false;
+	m_iAttackCombo = 0;
 }
 
 void APlayerCharacter::BeginPlay()
@@ -102,10 +110,12 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		, &APlayerCharacter::Action_Jump);
 	PlayerInputComponent->BindAction<APlayerCharacter>(TEXT("Action_Attack"), EInputEvent::IE_Pressed, this
 		, &APlayerCharacter::Action_Attack);
-	PlayerInputComponent->BindAction<APlayerCharacter>(TEXT("Skill_1"), EInputEvent::IE_Pressed, this
-		, &APlayerCharacter::Action_Skill_1);
+	PlayerInputComponent->BindAction<APlayerCharacter>(TEXT("Skill_E"), EInputEvent::IE_Pressed, this
+		, &APlayerCharacter::Action_Skill_E);
 	PlayerInputComponent->BindAction<APlayerCharacter>(TEXT("Evade"), EInputEvent::IE_Pressed, this
 		, &APlayerCharacter::Action_Evade);
+	PlayerInputComponent->BindAction<APlayerCharacter>(TEXT("MouseEnable"), EInputEvent::IE_Pressed, this
+		, &APlayerCharacter::Action_MouseEnable);
 }
 
 float APlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
@@ -114,8 +124,15 @@ float APlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const
 
 	if (!IsValid(m_pAnim))
 		return fDamage;
+	
+	//if (TEXT("Stun") != m_pAnim->Get_AnimType())
+	//{
+	//	GetWorldTimerManager().SetTimer(m_StunTimer, this, &APlayerCharacter::StunEnd, 2.f, false, -1.f);
 
-	m_pAnim->Set_AnimType(EPlayerAnimType::Hit);
+	//	m_pAnim->Set_AnimType(EPlayerAnimType::Stun);
+
+	//	m_isStun = true;
+	//}
 
 	fDamage = fDamage - m_fArmorPoint;
 	fDamage = fDamage > 0.f ? fDamage : 1.f;
@@ -143,7 +160,7 @@ void APlayerCharacter::Move_Forward(float fScale)
 	if (TEXT("Evade") == strAnimType)
 		return;
 
-	if (0.f == fScale || TEXT("Hit") == strAnimType)
+	if (0.f == fScale)
 	{
 		ERunType type = m_pAnim->Get_RunType();
 
@@ -170,7 +187,7 @@ void APlayerCharacter::Move_Side(float fScale)
 
 	FString strAnimType = m_pAnim->Get_AnimType();
 
-	if (0.f == fScale || TEXT("Hit") == strAnimType || TEXT("Evade") == strAnimType)
+	if (0.f == fScale || TEXT("Evade") == strAnimType)
 	{
 		m_pAnim->Add_Yaw(0.f);
 		return;
@@ -218,7 +235,7 @@ void APlayerCharacter::Mouse_Wheel(float fScale)
 
 void APlayerCharacter::Action_Jump()
 {
-	if (false == m_pAnim->Get_JumpEnable())
+	if (false == m_pAnim->Get_JumpEnable() || true == m_isStun)
 		return;
 
 	Jump();
@@ -228,47 +245,28 @@ void APlayerCharacter::Action_Jump()
 
 void APlayerCharacter::Action_Attack()
 {
-	//if (false == m_isAttacking)
-	//{
-	//	switch (m_iAttackCombo)
-	//	{
-	//	case (int32)EAttackType::AttackNone:
-	//		m_iAttackCombo = (int32)EAttackType::Attack1;
-	//		break;
-	//	case (int32)EAttackType::Attack1:
-	//		m_iAttackCombo = (int32)EAttackType::Attack2;
-	//		break;
-	//	case (int32)EAttackType::Attack2:
-	//		m_iAttackCombo = (int32)EAttackType::Attack3;
-	//		break;
-	//	case (int32)EAttackType::Attack3:
-	//		m_iAttackCombo = (int32)EAttackType::Attack4;
-	//		break;
-	//	}
-	//}
-	//else
-	//{
-	//	m_isSaveAttack = true;
-	//}
-
-	//m_pAnim->Set_AnimType(EPlayerAnimType::Attack);
-
-	//m_pAnim->Set_AttackType();
 }
 
-void APlayerCharacter::Action_Skill_1()
+void APlayerCharacter::Action_Skill_E()
 {
-	m_pAnim->Set_AnimType(EPlayerAnimType::Skill_Q);
+	m_pAnim->Set_AnimType(EPlayerAnimType::Skill_E);
 }
 
 void APlayerCharacter::Action_Evade()
 {
-	if (TEXT("Evade") == m_pAnim->Get_AnimType())
+	FString strType = m_pAnim->Get_AnimType();
+
+	if (TEXT("Evade") == strType || TEXT("Stun") == strType)
 		return;
 
 	m_pAnim->Set_AnimType(EPlayerAnimType::Evade);
 
 	m_isEvading = true;
+}
+
+void APlayerCharacter::Action_MouseEnable()
+{
+	Cast<APlayerController>(GetController())->bShowMouseCursor ^= true;
 }
 
 void APlayerCharacter::Fireball()
@@ -296,6 +294,12 @@ bool APlayerCharacter::CollisionCheck(TArray<FHitResult>& resultOut)
 	FVector vBox(m_fAttackRange, 150.f, 200.f);
 	FRotator rot = GetActorRotation();
 
+	bool bSkillE = TEXT("Skill_E") == m_pAnim->Get_AnimType() ? true : false;
+
+	if (true == bSkillE)
+	{
+		vLoc -= FVector(0.f, 0.f, -100.f);
+	}
 
 	bool bCollision = GetWorld()->SweepMultiByChannel(resultOut, vLoc, vLoc, rot.Quaternion()
 		, (ECollisionChannel)CollisionPlayerAttack, FCollisionShape::MakeBox(vBox), tParams);
@@ -313,11 +317,13 @@ bool APlayerCharacter::CollisionCheck(TArray<FHitResult>& resultOut)
 	{
 		FDamageEvent tEvent;
 
-		LOGW(TEXT("CollCnt : %d"), resultOut.Num());
+		LOGW("CollCnt : %d", resultOut.Num());
 
 		for (auto& result : resultOut)
 		{
-			result.GetActor()->TakeDamage(m_fAttackPoint, tEvent, GetController(), this);
+			AMonster* pMonster = Cast<AMonster>(result.GetActor());
+
+			pMonster->TakeDamage(m_fAttackPoint, tEvent, GetController(), this);
 
 			FActorSpawnParameters tSpawnParams;
 
@@ -325,9 +331,14 @@ bool APlayerCharacter::CollisionCheck(TArray<FHitResult>& resultOut)
 
 			auto HitEffect = GetWorld()->SpawnActor<ASkillEffect>(result.ImpactPoint, result.ImpactNormal.Rotation(), tSpawnParams);
 
-			HitEffect->Load_Particle(TEXT("ParticleSystem'/Game/AdvancedMagicFX12/particles/P_ky_hit_water.P_ky_hit_water'"));
+			if (true == bSkillE)
+			{
+				HitEffect->Load_Particle(TEXT("ParticleSystem'/Game/AdvancedMagicFX12/particles/P_ky_hit_ice.P_ky_hit_ice'"));
+				pMonster->Set_Frozen(1.f);
+			}
+			else
+				HitEffect->Load_Particle(TEXT("ParticleSystem'/Game/AdvancedMagicFX12/particles/P_ky_hit_water.P_ky_hit_water'")); 
 		}
-
 	}
 
 	return bCollision;
@@ -362,6 +373,20 @@ void APlayerCharacter::Evade_Move()
 	}
 
 	SetActorLocation(vLoc);
+}
+
+void APlayerCharacter::StunEnd()
+{
+	m_pAnim->Set_AnimType(EPlayerAnimType::Idle);
+
+	m_isAttacking = false;
+	m_isSaveAttack = false;
+	m_isStun = false;
+}
+
+void APlayerCharacter::SkillE_StunAttack()
+{
+	m_pAnim->Set_AnimType(EPlayerAnimType::Skill_E);
 }
 
 void APlayerCharacter::ResetPrimaryAttack()

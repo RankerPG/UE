@@ -51,7 +51,7 @@ void UBTTask_Attack::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemo
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 	}
 
-	if (0.f < pMonster->Get_HP() && TEXT("Hit") != pMonster->Get_AnimSequence())
+	if (0.f < pMonster->Get_HP() && TEXT("Hit") != pMonster->Get_AnimType() && ECharacterState::Frozen != pMonster->Get_State())
 	{
 		pMonster->Set_AnimSequence(TEXT("Attack"));
 	}

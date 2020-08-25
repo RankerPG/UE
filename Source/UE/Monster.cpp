@@ -12,14 +12,18 @@ AMonster::AMonster()
 	GetCapsuleComponent()->SetCollisionProfileName(TEXT("Monster"));
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AMonster::CollsionHit);
+	//GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AMonster::CollsionHit);
 
 	m_pAnim = nullptr;
 
+	m_pMesh = Cast<USkeletalMeshComponent>(GetComponentByClass(USkeletalMeshComponent::StaticClass()));
+
 	m_iPatrolNum = 0;
+
+	m_eState = ECharacterState::Running;
 }
 
-FString& AMonster::Get_AnimSequence()
+FString& AMonster::Get_AnimType()
 {
 	return m_pAnim->Get_AnimName();
 }
@@ -34,6 +38,13 @@ const FVector& AMonster::Get_NextPatrolPos()
 void AMonster::Set_AnimSequence(const FString& strAnim)
 {
 	m_pAnim->Set_AnimName(strAnim);
+}
+
+void AMonster::Set_Frozen(float fFrozenTime)
+{
+	m_eState = ECharacterState::Frozen;
+
+	m_pMesh->bPauseAnims = true;
 }
 
 void AMonster::BeginPlay()
@@ -54,9 +65,6 @@ void AMonster::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void AMonster::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-
-	//GetWorldTimerManager()->Set
 }
 
 void AMonster::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -116,16 +124,6 @@ float AMonster::TakeDamage(float DamageAmount, struct FDamageEvent const& Damage
 	}
 
 	return fDamage;
-}
-
-void AMonster::CollsionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
-{
-
-}
-
-void AMonster::Death()
-{
-
 }
 
 void AMonster::DeathEnd()

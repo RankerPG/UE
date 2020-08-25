@@ -13,8 +13,6 @@ void AUEGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	LOGW(TEXT("beginplay"));
-
 	if (IsValid(m_MainWidgetClass))
 	{
 		m_pMainWidget = Cast<UMainWidget>(CreateWidget<UMainWidget>(GetWorld(), m_MainWidgetClass));
