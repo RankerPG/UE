@@ -18,6 +18,7 @@ public:
 	bool Get_Evading() const { return m_isEvading; }
 
 	void Set_Evading(bool isEvading) { m_isEvading = isEvading; }
+	void Set_SkillQMoving() { m_isSkillQMoving ^= true; }
 	void Reset_AttackInfo();
 
 protected:
@@ -40,14 +41,18 @@ public:
 	//Action
 	void Action_Jump();
 	void Action_Attack();
+	void Action_Skill_Q();
 	void Action_Skill_E();
+	void Action_Skill_R();
 	void Action_Evade();
 	void Action_MouseEnable();
 
 public:
 	void Fireball();
 	bool CollisionCheck(TArray<FHitResult>& resultOut);
+	bool CollisionCheck_Knockback(TArray<FHitResult>& resultOut);
 	void Evade_Move();
+	void SkillQ_Move();
 	void StunEnd();
 	void SkillE_StunAttack();
 
@@ -83,6 +88,8 @@ private:
 	FTimerHandle m_StunTimer;
 
 	bool m_isEvading;
+
+	bool m_isSkillQMoving;
 
 private: // status
 	UPROPERTY(category = Attack, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))

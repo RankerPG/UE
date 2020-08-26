@@ -18,10 +18,10 @@ public:
 	AMonster();
 
 public:
-	FString& Get_AnimType();
+	FString Get_AnimType();
 	const FVector& Get_PatrolPos() { return m_PatrolPosArray[m_iPatrolNum]; }
 	const FVector& Get_NextPatrolPos();
-	ECharacterState Get_State() { return m_eState; }
+	ECharacterState Get_State();
 	int32 Get_PatrolNum() { return m_iPatrolNum; }
 	float Get_TraceRange() { return m_fTraceRange; }
 	float Get_AttackRange() { return m_fAttackRange; }
@@ -34,6 +34,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void Add_PatrolPos(const FVector& vPos) { m_PatrolPosArray.Add(vPos); }
 	void Set_Frozen(float fFrozenTime);
+	void Set_Stun(float fStunTime);
 
 public:
 	template <typename T>
@@ -84,8 +85,6 @@ protected:
 
 	FOnAttackEndDelegate m_OnAttackEnd;
 	TArray<FDelegateHandle> m_AttackEndHandleArray;
-
-	ECharacterState m_eState;
 
 	bool m_bPatrolEnable;
 

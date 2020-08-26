@@ -53,7 +53,7 @@ void UBTTask_Patrol::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemo
 	if (!pMonster)
 		return;
 
-	if (TEXT("Hit") == pMonster->Get_AnimType() || ECharacterState::Frozen == pMonster->Get_State())
+	if (TEXT("Hit") == pMonster->Get_AnimType() || ECharacterState::Running != pMonster->Get_State())
 		return;
 
 	FVector vPatrolPos = pMonster->Get_PatrolPos();

@@ -19,13 +19,11 @@ AMonster::AMonster()
 	m_pMesh = Cast<USkeletalMeshComponent>(GetComponentByClass(USkeletalMeshComponent::StaticClass()));
 
 	m_iPatrolNum = 0;
-
-	m_eState = ECharacterState::Running;
 }
 
-FString& AMonster::Get_AnimType()
+FString AMonster::Get_AnimType()
 {
-	return m_pAnim->Get_AnimName();
+	return m_pAnim->Get_AnimType();
 }
 
 const FVector& AMonster::Get_NextPatrolPos()
@@ -35,16 +33,24 @@ const FVector& AMonster::Get_NextPatrolPos()
 	return m_PatrolPosArray[m_iPatrolNum];
 }
 
+ECharacterState AMonster::Get_State()
+{
+	return m_pAnim->Get_State();
+}
+
 void AMonster::Set_AnimSequence(const FString& strAnim)
 {
-	m_pAnim->Set_AnimName(strAnim);
+	m_pAnim->Set_AnimType(strAnim);
 }
 
 void AMonster::Set_Frozen(float fFrozenTime)
 {
-	m_eState = ECharacterState::Frozen;
+	m_pAnim->Set_Frozen(fFrozenTime);
+}
 
-	m_pMesh->bPauseAnims = true;
+void AMonster::Set_Stun(float fStunTime)
+{
+	m_pAnim->Set_Stun(fStunTime);
 }
 
 void AMonster::BeginPlay()
@@ -113,13 +119,15 @@ float AMonster::TakeDamage(float DamageAmount, struct FDamageEvent const& Damage
 
 		if (m_fHP > 0.f)
 		{
-			m_pAnim->Set_AnimName(TEXT("Hit"));
+			m_pAnim->Set_AnimType(TEXT("Hit"));
 		}
 		else
 		{
-			m_pAnim->Set_AnimName(TEXT("Death"));
+			m_pAnim->Set_AnimType(TEXT("Death"));
 
 			GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+			m_pMesh->bPauseAnims = false;
 		}
 	}
 

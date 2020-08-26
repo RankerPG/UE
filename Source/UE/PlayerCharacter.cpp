@@ -57,6 +57,8 @@ APlayerCharacter::APlayerCharacter()
 
 	m_isEvading = false;
 
+	m_isSkillQMoving = false;
+
 	m_eState = ECharacterState::Running;
 }
 
@@ -110,8 +112,12 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		, &APlayerCharacter::Action_Jump);
 	PlayerInputComponent->BindAction<APlayerCharacter>(TEXT("Action_Attack"), EInputEvent::IE_Pressed, this
 		, &APlayerCharacter::Action_Attack);
+	PlayerInputComponent->BindAction<APlayerCharacter>(TEXT("Skill_Q"), EInputEvent::IE_Pressed, this
+		, &APlayerCharacter::Action_Skill_Q);
 	PlayerInputComponent->BindAction<APlayerCharacter>(TEXT("Skill_E"), EInputEvent::IE_Pressed, this
 		, &APlayerCharacter::Action_Skill_E);
+	PlayerInputComponent->BindAction<APlayerCharacter>(TEXT("Skill_R"), EInputEvent::IE_Pressed, this
+		, &APlayerCharacter::Action_Skill_R);
 	PlayerInputComponent->BindAction<APlayerCharacter>(TEXT("Evade"), EInputEvent::IE_Pressed, this
 		, &APlayerCharacter::Action_Evade);
 	PlayerInputComponent->BindAction<APlayerCharacter>(TEXT("MouseEnable"), EInputEvent::IE_Pressed, this
@@ -240,26 +246,35 @@ void APlayerCharacter::Action_Jump()
 
 	Jump();
 
-	m_pAnim->Set_AnimType(EPlayerAnimType::Jump);
+	m_pAnim->Set_AnimType(TEXT("Jump"));
 }
 
 void APlayerCharacter::Action_Attack()
 {
 }
 
+void APlayerCharacter::Action_Skill_Q()
+{
+	m_pAnim->Set_AnimType(TEXT("Skill_Q"));
+}
 void APlayerCharacter::Action_Skill_E()
 {
-	m_pAnim->Set_AnimType(EPlayerAnimType::Skill_E);
+	m_pAnim->Set_AnimType(TEXT("Skill_E"));
+}
+
+void APlayerCharacter::Action_Skill_R()
+{
+	m_pAnim->Set_AnimType(TEXT("Skill_R"));
 }
 
 void APlayerCharacter::Action_Evade()
 {
 	FString strType = m_pAnim->Get_AnimType();
 
-	if (TEXT("Evade") == strType || TEXT("Stun") == strType)
+	if (TEXT("Evade") == strType || TEXT("Skill_E") == strType || ECharacterState::Stun == m_eState)
 		return;
 
-	m_pAnim->Set_AnimType(EPlayerAnimType::Evade);
+	m_pAnim->Set_AnimType(TEXT("Evade"));
 
 	m_isEvading = true;
 }
@@ -287,18 +302,32 @@ void APlayerCharacter::Fireball()
 
 bool APlayerCharacter::CollisionCheck(TArray<FHitResult>& resultOut)
 {
+	// 공격에 따른 범위 지정을 위해 설정.
+	int iAttackType = 0;
+
+	iAttackType = TEXT("Skill_E") == m_pAnim->Get_AnimType() ? 1 : 0;
+	iAttackType = TEXT("Skill_Q") == m_pAnim->Get_AnimType() ? 2 : iAttackType;
+
 	FCollisionQueryParams tParams(NAME_None, false, this);
 
 	FVector vForward = GetActorForwardVector();
-	FVector vLoc = GetActorLocation() + vForward * m_fAttackRange;
+	FVector vLoc = GetActorLocation() ;
 	FVector vBox(m_fAttackRange, 150.f, 200.f);
 	FRotator rot = GetActorRotation();
 
-	bool bSkillE = TEXT("Skill_E") == m_pAnim->Get_AnimType() ? true : false;
-
-	if (true == bSkillE)
+	// 더 많아지면 switch로 변경
+	if (1 == iAttackType) // Skill_E
 	{
-		vLoc -= FVector(0.f, 0.f, -100.f);
+		vLoc += vForward * m_fAttackRange - FVector(0.f, 0.f, -100.f);
+	}
+	else if (2 == iAttackType) // Skill_Q
+	{
+		vBox = FVector(100.f, 100.f, 200.f);
+		vLoc += vForward * 50.f;
+	}
+	else
+	{
+		vLoc += vForward * m_fAttackRange;
 	}
 
 	bool bCollision = GetWorld()->SweepMultiByChannel(resultOut, vLoc, vLoc, rot.Quaternion()
@@ -313,7 +342,7 @@ bool APlayerCharacter::CollisionCheck(TArray<FHitResult>& resultOut)
 	DrawDebugBox(GetWorld(), vCenter, vBox, DrawColor, false, 2.f);
 #endif
 
-	if (bCollision)
+	if (true == bCollision)
 	{
 		FDamageEvent tEvent;
 
@@ -331,13 +360,56 @@ bool APlayerCharacter::CollisionCheck(TArray<FHitResult>& resultOut)
 
 			auto HitEffect = GetWorld()->SpawnActor<ASkillEffect>(result.ImpactPoint, result.ImpactNormal.Rotation(), tSpawnParams);
 
-			if (true == bSkillE)
+			// 더 많아지면 switch로 변경
+			if (1 == iAttackType) // Skill_E
 			{
 				HitEffect->Load_Particle(TEXT("ParticleSystem'/Game/AdvancedMagicFX12/particles/P_ky_hit_ice.P_ky_hit_ice'"));
-				pMonster->Set_Frozen(1.f);
+				pMonster->Set_Frozen(3.f);
+			}
+			else if (2 == iAttackType) // Skill_Q
+			{
+				HitEffect->Load_Particle(TEXT("ParticleSystem'/Game/AdvancedMagicFX12/particles/P_ky_hit_water.P_ky_hit_water'"));
+				pMonster->Set_Stun(3.f);
 			}
 			else
-				HitEffect->Load_Particle(TEXT("ParticleSystem'/Game/AdvancedMagicFX12/particles/P_ky_hit_water.P_ky_hit_water'")); 
+			{
+				HitEffect->Load_Particle(TEXT("ParticleSystem'/Game/AdvancedMagicFX12/particles/P_ky_hit_water.P_ky_hit_water'"));
+			}
+		}
+	}
+
+	return bCollision;
+}
+
+bool APlayerCharacter::CollisionCheck_Knockback(TArray<FHitResult>& resultOut)
+{
+	FCollisionQueryParams tParams(NAME_Name, false, this);
+
+	FVector vLoc = GetActorLocation();
+	FVector vForward = GetActorForwardVector();
+	FRotator rot = GetActorRotation();
+	FVector vBox(100.f, 100.f, 200.f);
+
+	bool bCollision = GetWorld()->SweepMultiByChannel(resultOut, vLoc, vLoc, rot.Quaternion()
+		, (ECollisionChannel)CollisionPlayerAttack, FCollisionShape::MakeBox(vBox), tParams);
+
+//#if ENABLE_DRAW_DEBUG
+//	FVector vCenter = vLoc;
+//
+//	FColor color = bCollision ? FColor::Red : FColor::Green;
+//
+//	DrawDebugBox(GetWorld(), vCenter, vBox, color, false, 1.f);
+//#endif
+
+	if (true == bCollision)
+	{
+		for (auto result : resultOut)
+		{
+			AMonster* pMonster = Cast<AMonster>(result.GetActor());
+
+			FVector vMonsterLoc = pMonster->GetActorLocation() + (vForward * 2000.f * GetWorld()->GetDeltaSeconds());
+
+			pMonster->SetActorLocation(vMonsterLoc);
 		}
 	}
 
@@ -375,9 +447,25 @@ void APlayerCharacter::Evade_Move()
 	SetActorLocation(vLoc);
 }
 
+void APlayerCharacter::SkillQ_Move()
+{
+	if (false == m_isSkillQMoving)
+		return;
+
+	float fScale = 2000.f * GetWorld()->GetDeltaSeconds(); // 0.6초
+
+	FVector vLoc = GetActorLocation() + GetActorForwardVector() * fScale;
+
+	TArray<FHitResult> resultArray;
+
+	CollisionCheck_Knockback(resultArray);
+
+	SetActorLocation(vLoc);
+}
+
 void APlayerCharacter::StunEnd()
 {
-	m_pAnim->Set_AnimType(EPlayerAnimType::Idle);
+	m_pAnim->Set_AnimType(TEXT("Idle"));
 
 	m_isAttacking = false;
 	m_isSaveAttack = false;
@@ -386,7 +474,7 @@ void APlayerCharacter::StunEnd()
 
 void APlayerCharacter::SkillE_StunAttack()
 {
-	m_pAnim->Set_AnimType(EPlayerAnimType::Skill_E);
+	m_pAnim->Set_AnimType(TEXT("Skill_E"));
 }
 
 void APlayerCharacter::ResetPrimaryAttack()

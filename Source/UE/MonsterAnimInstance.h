@@ -1,29 +1,20 @@
 #pragma once
 
-#include "Info.h"
-#include "Animation/AnimInstance.h"
+#include "SuperAnimInstance.h"
 #include "MonsterAnimInstance.generated.h"
 
 UCLASS()
-class UE_API UMonsterAnimInstance : public UAnimInstance
+class UE_API UMonsterAnimInstance : public USuperAnimInstance
 {
 	GENERATED_BODY()
 
 public:
 	UMonsterAnimInstance();
 
-public:
-	FString& Get_AnimName() { return m_strCurrentAnimType; }
-
-	void Set_AnimName(const FString& strName) { m_strCurrentAnimType = strName; }
-
-private:
+protected:
 	virtual void NativeInitializeAnimation();
 
 	virtual void NativeUpdateAnimation(float DeltaSeconds);
-
-	UFUNCTION()
-		void AnimNotify_ActionToIdle();
 
 	UFUNCTION()
 		void AnimNotify_DeathEnd();
@@ -42,9 +33,6 @@ private:
 
 protected:
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-		FString m_strCurrentAnimType;
-
-	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		FString m_strIdle;
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
@@ -61,9 +49,4 @@ protected:
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		FString m_strDeath;
-
-	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-		FString m_strStun;
-
-	TArray<FString> m_strArray;
 };

@@ -11,7 +11,6 @@ UPlayerAnimInstance::UPlayerAnimInstance()
 	m_strArray.Add(TEXT("Attack"));
 	m_strArray.Add(TEXT("Death"));
 	m_strArray.Add(TEXT("Jump"));
-	m_strArray.Add(TEXT("Stun"));
 	m_strArray.Add(TEXT("Evade"));
 	m_strArray.Add(TEXT("Skill_Q"));
 	m_strArray.Add(TEXT("Skill_E"));
@@ -22,11 +21,10 @@ UPlayerAnimInstance::UPlayerAnimInstance()
 	m_strAttack = m_strArray[2];
 	m_strDeath = m_strArray[3];
 	m_strJump = m_strArray[4];
-	m_strStun = m_strArray[5];
-	m_strEvade = m_strArray[6];
-	m_strSkill_Q = m_strArray[7];
-	m_strSkill_E = m_strArray[8];
-	m_strSkill_R = m_strArray[9];
+	m_strEvade = m_strArray[5];
+	m_strSkill_Q = m_strArray[6];
+	m_strSkill_E = m_strArray[7];
+	m_strSkill_R = m_strArray[8];
 
 	m_iDir = 0;
 
@@ -48,6 +46,8 @@ void UPlayerAnimInstance::NativeInitializeAnimation()
 	Super::NativeInitializeAnimation();
 
 	m_pPlayer = Cast<APlayerCharacter>(TryGetPawnOwner());
+
+	m_fPlayRate = 1.f;
 }
 
 void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
@@ -56,6 +56,9 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	if (IsValid(m_pPlayer))
 	{
+		if (ECharacterState::Running != m_pPlayer->Get_State())
+			return;
+
 		m_fBeforeSpeed = m_fSpeed;
 
 		m_isAccelerating = m_fSpeed - m_fBeforeSpeed >= 0.f ? true : false;
@@ -78,11 +81,13 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 		if (m_strArray[(int)EPlayerAnimType::Skill_Q] == m_strCurrentAnimType)
 		{
+			StopAllMontages(0.1f);
 
+			m_pPlayer->SkillQ_Move();
 		}
 		else if (m_strArray[(int)EPlayerAnimType::Skill_E] == m_strCurrentAnimType)
 		{
-
+			StopAllMontages(0.f);
 		}
 		else if (m_strArray[(int)EPlayerAnimType::Skill_R] == m_strCurrentAnimType)
 		{
@@ -93,12 +98,6 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 			StopAllMontages(0.1f);
 
 			m_pPlayer->Evade_Move();
-
-			m_isAccelerating = false;
-		}
-		else if (m_strArray[(int)EPlayerAnimType::Stun] == m_strCurrentAnimType)
-		{
-
 		}
 		else
 		{
@@ -169,11 +168,6 @@ void UPlayerAnimInstance::AnimNotify_JumpEnd()
 	m_isJumpAttack = false;
 }
 
-void UPlayerAnimInstance::AnimNotify_ActionToIdle()
-{
-	m_strCurrentAnimType = m_strArray[(int)EPlayerAnimType::Idle];
-}
-
 void UPlayerAnimInstance::AnimNotify_Fireball()
 {
 	if (IsValid(m_pPlayer))
@@ -227,6 +221,16 @@ void UPlayerAnimInstance::AnimNotify_CollisionCheck()
 	}
 }
 
+void UPlayerAnimInstance::AnimNotify_CollisionKnockbackCheck()
+{
+	if (IsValid(m_pPlayer))
+	{
+		TArray<FHitResult> resultArray;
+
+		bool bCollision = m_pPlayer->CollisionCheck(resultArray);
+	}
+}
+
 void UPlayerAnimInstance::AnimNotify_EvadeEnd()
 {
 	m_pPlayer->Set_Evading(false);
@@ -235,4 +239,9 @@ void UPlayerAnimInstance::AnimNotify_EvadeEnd()
 void UPlayerAnimInstance::AnimNotify_AttackToDash()
 {
 	m_strCurrentAnimType = m_strEvade;
+}
+
+void UPlayerAnimInstance::AnimNotify_SkillQMovingOnOff()
+{
+	m_pPlayer->Set_SkillQMoving();
 }

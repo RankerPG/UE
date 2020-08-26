@@ -1,11 +1,10 @@
 #pragma once
 
-#include "info.h"
-#include "Animation/AnimInstance.h"
+#include "SuperAnimInstance.h"
 #include "PlayerAnimInstance.generated.h"
 
 UCLASS()
-class UE_API UPlayerAnimInstance : public UAnimInstance
+class UE_API UPlayerAnimInstance : public USuperAnimInstance
 {
 	GENERATED_BODY()
 
@@ -13,15 +12,17 @@ public:
 	UPlayerAnimInstance();
 
 public:
-	FString Get_AnimType() { return m_strCurrentAnimType; }
 	ERunType Get_RunType() { return m_eRunType; }
 	bool Get_JumpEnable() { return m_isJumpEnable; }
 
-	void Set_AnimType(EPlayerAnimType eAnimType) { m_strCurrentAnimType = m_strArray[(int)eAnimType]; }
 	void Set_RunType(ERunType eRunType) { m_eRunType = eRunType; }
 	void Add_Yaw(float fDirection);
 
-public:
+protected:
+	virtual void NativeInitializeAnimation();
+
+	virtual void NativeUpdateAnimation(float DeltaSeconds);
+
 	UFUNCTION()
 		void AnimNotify_AttackEnable();
 
@@ -35,13 +36,13 @@ public:
 		void AnimNotify_JumpEnd();
 
 	UFUNCTION()
-		void AnimNotify_ActionToIdle();
-
-	UFUNCTION()
 		void AnimNotify_Fireball();
 
 	UFUNCTION()
 		void AnimNotify_CollisionCheck();
+
+	UFUNCTION()
+		void AnimNotify_CollisionKnockbackCheck();
 
 	UFUNCTION()
 		void AnimNotify_EvadeEnd();
@@ -49,16 +50,11 @@ public:
 	UFUNCTION()
 		void AnimNotify_AttackToDash();
 
-private:
-	virtual void NativeInitializeAnimation();
-
-	virtual void NativeUpdateAnimation(float DeltaSeconds);
+	UFUNCTION()
+		void AnimNotify_SkillQMovingOnOff();
 
 protected:
 	class APlayerCharacter* m_pPlayer;
-
-	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-		FString m_strCurrentAnimType;
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		FString m_strIdle;
@@ -76,9 +72,6 @@ protected:
 		FString m_strJump;
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-		FString m_strStun;
-
-	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		FString m_strEvade;
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
@@ -89,8 +82,6 @@ protected:
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		FString m_strSkill_R;
-
-	TArray<FString>m_strArray;
 
 	//
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))

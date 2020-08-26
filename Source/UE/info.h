@@ -21,12 +21,12 @@ enum class EPlayerJob : uint8
 };
 
 UENUM(BlueprintType)
-enum class ECharacterState : uint8
+enum class ECharacterState : uint8 // CC기에 대한 처리
 {
 	Running, // 정상적인 실행
 	Frozen,
-	Slow,
-	Fast,
+	Stun,
+	Knockback,
 };
 
 UENUM(BlueprintType)
@@ -37,7 +37,6 @@ enum class EPlayerAnimType : uint8
 	Attack,
 	Death,
 	Jump,
-	Stun,
 	Evade,
 	Skill_Q,
 	Skill_E,
@@ -83,8 +82,6 @@ enum class EMonsterAnimType : uint8
 	Attack,
 	Hit,
 	Death,
-	Stun,
-	Frozen
 };
 
 UENUM(BlueprintType)
