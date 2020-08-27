@@ -42,7 +42,7 @@ protected:
 		void AnimNotify_CollisionCheck();
 
 	UFUNCTION()
-		void AnimNotify_CollisionKnockbackCheck();
+		void AnimNotify_CollisionCheck_Sphere();
 
 	UFUNCTION()
 		void AnimNotify_EvadeEnd();

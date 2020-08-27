@@ -1,5 +1,5 @@
 #include "SuperAnimInstance.h"
-
+#include "SkillEffect.h"
 
 USuperAnimInstance::USuperAnimInstance()
 {
@@ -10,7 +10,8 @@ void USuperAnimInstance::Set_Frozen(float fFrozenTime)
 {
 	m_eState = ECharacterState::Frozen;
 
-	m_pCharacter->GetMesh()->bPauseAnims = true;
+	if (true == m_FrozenTimerHandle.IsValid())
+		m_pCharacter->GetWorldTimerManager().ClearTimer(m_FrozenTimerHandle);
 
 	m_pCharacter->GetWorldTimerManager().SetTimer(m_FrozenTimerHandle, this, &USuperAnimInstance::FrozenEnd, fFrozenTime, false);
 }
@@ -20,9 +21,20 @@ void USuperAnimInstance::Set_Stun(float fStunTime)
 {
 	m_eState = ECharacterState::Stun;
 
-	m_pCharacter->GetMesh()->bPauseAnims = false;
+	if (true == m_StunTimerHandle.IsValid())
+		m_pCharacter->GetWorldTimerManager().ClearTimer(m_StunTimerHandle);
 
 	m_pCharacter->GetWorldTimerManager().SetTimer(m_StunTimerHandle, this, &USuperAnimInstance::StunEnd, fStunTime, false);
+}
+
+void USuperAnimInstance::Set_Knockback(float fKnockbackTime)
+{
+	m_eState = ECharacterState::Knockback;
+
+	if (true == m_FrozenTimerHandle.IsValid())
+		m_pCharacter->GetWorldTimerManager().ClearTimer(m_KnockbackTimerHandle);
+
+	m_pCharacter->GetWorldTimerManager().SetTimer(m_KnockbackTimerHandle, this, &USuperAnimInstance::KnockbackEnd, fKnockbackTime, false);
 }
 
 void USuperAnimInstance::NativeInitializeAnimation()
@@ -60,12 +72,24 @@ void USuperAnimInstance::AnimNotify_ChangePlayRate_200()
 
 void USuperAnimInstance::FrozenEnd()
 {
-	m_eState = ECharacterState::Running;
+	if(ECharacterState::Frozen == m_eState)
+		m_eState = ECharacterState::Running;
 
-	m_pCharacter->GetMesh()->bPauseAnims = false;
+	m_pCharacter->GetWorldTimerManager().ClearTimer(m_FrozenTimerHandle);
 }
 
 void USuperAnimInstance::StunEnd()
 {
-	m_eState = ECharacterState::Running;
+	if (ECharacterState::Stun == m_eState)
+		m_eState = ECharacterState::Running;
+
+	m_pCharacter->GetWorldTimerManager().ClearTimer(m_StunTimerHandle);
+}
+
+void USuperAnimInstance::KnockbackEnd()
+{
+	if (ECharacterState::Knockback == m_eState)
+		m_eState = ECharacterState::Running;
+
+	m_pCharacter->GetWorldTimerManager().ClearTimer(m_KnockbackTimerHandle);
 }

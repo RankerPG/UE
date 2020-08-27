@@ -13,12 +13,14 @@ public:
 	APlayerCharacter();
 
 public:
-	ECharacterState Get_State() { return m_eState; }
+	ECharacterState Get_State();
 	int Get_AttackCombo() const { return m_iAttackCombo; }
 	bool Get_Evading() const { return m_isEvading; }
 
 	void Set_Evading(bool isEvading) { m_isEvading = isEvading; }
 	void Set_SkillQMoving() { m_isSkillQMoving ^= true; }
+	void Set_Frozen(float fFrozenTime);
+	void Set_Stun(float fStunTime);
 	void Reset_AttackInfo();
 
 protected:
@@ -50,11 +52,11 @@ public:
 public:
 	void Fireball();
 	bool CollisionCheck(TArray<FHitResult>& resultOut);
+	bool CollisionCheck_Sphere(TArray<FHitResult>& resultOut);
 	bool CollisionCheck_Knockback(TArray<FHitResult>& resultOut);
 	void Evade_Move();
 	void SkillQ_Move();
-	void StunEnd();
-	void SkillE_StunAttack();
+	void SkillR_FrozenWorld();
 
 	void ResetPrimaryAttack();
 
@@ -67,9 +69,6 @@ private:
 
 	UPROPERTY(category = Mesh, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		USkeletalMeshComponent* m_pMesh;
-
-	UPROPERTY(category = State, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-		ECharacterState m_eState;
 
 	UPROPERTY(category = Attack, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		int m_iAttackCombo;
@@ -84,8 +83,6 @@ private:
 		bool m_isStun;
 
 	class UPlayerAnimInstance* m_pAnim;
-
-	FTimerHandle m_StunTimer;
 
 	bool m_isEvading;
 

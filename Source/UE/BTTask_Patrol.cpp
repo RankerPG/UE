@@ -44,7 +44,6 @@ void UBTTask_Patrol::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemo
 	if (pTarget)
 	{
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
-
 		return;
 	}
 
@@ -54,8 +53,11 @@ void UBTTask_Patrol::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemo
 		return;
 
 	if (TEXT("Hit") == pMonster->Get_AnimType() || ECharacterState::Running != pMonster->Get_State())
+	{
+		pController->StopMovement();
 		return;
-
+	}
+	
 	FVector vPatrolPos = pMonster->Get_PatrolPos();
 
 	if (pMonster->Get_HP() > 0.f)

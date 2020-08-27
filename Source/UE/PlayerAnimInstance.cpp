@@ -221,13 +221,30 @@ void UPlayerAnimInstance::AnimNotify_CollisionCheck()
 	}
 }
 
-void UPlayerAnimInstance::AnimNotify_CollisionKnockbackCheck()
+void UPlayerAnimInstance::AnimNotify_CollisionCheck_Sphere()
 {
 	if (IsValid(m_pPlayer))
 	{
 		TArray<FHitResult> resultArray;
 
-		bool bCollision = m_pPlayer->CollisionCheck(resultArray);
+		bool bCollision = m_pPlayer->CollisionCheck_Sphere(resultArray);
+
+		if (bCollision)
+		{
+
+			for (auto& result : resultArray)
+			{
+				FActorSpawnParameters tSpawnParams;
+
+				tSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+				AEffectSound* pSound = GetWorld()->SpawnActor<AEffectSound>(result.ImpactPoint, result.ImpactNormal.Rotation(), tSpawnParams);
+
+				pSound->LoadAudio(TEXT("SoundWave'/Game/Sound/Hit_SwordStabEarth_Rumble1.Hit_SwordStabEarth_Rumble1'"));
+
+				pSound->Play();
+			}
+		}
 	}
 }
 

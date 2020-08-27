@@ -60,6 +60,11 @@ void UBTTask_MoveTarget::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 
 		UAIBlueprintHelperLibrary::SimpleMoveToActor(pController, pTarget);
 	}
+	else
+	{
+		pController->StopMovement();
+		return;
+	}
 
 	FVector vMonsterPos = pMonster->GetMesh()->GetComponentLocation();
 	FVector vTargetPos = pTarget->GetMesh()->GetComponentLocation();

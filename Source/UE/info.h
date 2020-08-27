@@ -23,6 +23,7 @@ enum class EPlayerJob : uint8
 UENUM(BlueprintType)
 enum class ECharacterState : uint8 // CC기에 대한 처리
 {
+	StateNone,
 	Running, // 정상적인 실행
 	Frozen,
 	Stun,

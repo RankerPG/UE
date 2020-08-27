@@ -61,7 +61,11 @@ void UBTTask_Attack::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemo
 		if (IsValid(pTarget))
 		{
 			FVector vDir = pTarget->GetActorLocation() - pMonster->GetActorLocation();
+
+			vDir.Z = 0.f;
+
 			vDir.Normalize();
+
 
 			pMonster->SetActorRotation(vDir.Rotation());
 		}

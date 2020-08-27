@@ -35,6 +35,7 @@ public:
 		void Add_PatrolPos(const FVector& vPos) { m_PatrolPosArray.Add(vPos); }
 	void Set_Frozen(float fFrozenTime);
 	void Set_Stun(float fStunTime);
+	void Set_Knockback(float fKnockbackTime);
 
 public:
 	template <typename T>

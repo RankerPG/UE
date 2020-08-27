@@ -35,6 +35,9 @@ const FVector& AMonster::Get_NextPatrolPos()
 
 ECharacterState AMonster::Get_State()
 {
+	if (!IsValid(m_pAnim))
+		return ECharacterState::StateNone;
+
 	return m_pAnim->Get_State();
 }
 
@@ -51,6 +54,11 @@ void AMonster::Set_Frozen(float fFrozenTime)
 void AMonster::Set_Stun(float fStunTime)
 {
 	m_pAnim->Set_Stun(fStunTime);
+}
+
+void AMonster::Set_Knockback(float fKnockbackTime)
+{
+	m_pAnim->Set_Knockback(fKnockbackTime);
 }
 
 void AMonster::BeginPlay()
@@ -119,7 +127,8 @@ float AMonster::TakeDamage(float DamageAmount, struct FDamageEvent const& Damage
 
 		if (m_fHP > 0.f)
 		{
-			m_pAnim->Set_AnimType(TEXT("Hit"));
+			if (ECharacterState::Running != m_pAnim->Get_State())
+				m_pAnim->Set_AnimType(TEXT("Hit"));
 		}
 		else
 		{

@@ -58,8 +58,24 @@ APlayerCharacter::APlayerCharacter()
 	m_isEvading = false;
 
 	m_isSkillQMoving = false;
+}
 
-	m_eState = ECharacterState::Running;
+ECharacterState APlayerCharacter::Get_State()
+{
+	if (!IsValid(m_pAnim))
+		return ECharacterState::Running;
+
+	return m_pAnim->Get_State();
+}
+
+void APlayerCharacter::Set_Frozen(float fFrozenTime)
+{
+	m_pAnim->Set_Frozen(fFrozenTime);
+}
+
+void APlayerCharacter::Set_Stun(float fStunTime)
+{
+	m_pAnim->Set_Stun(fStunTime);
 }
 
 void APlayerCharacter::Reset_AttackInfo()
@@ -255,15 +271,24 @@ void APlayerCharacter::Action_Attack()
 
 void APlayerCharacter::Action_Skill_Q()
 {
+	if (TEXT("SKill_Q") == m_pAnim->Get_AnimType())
+		return;
+
 	m_pAnim->Set_AnimType(TEXT("Skill_Q"));
 }
 void APlayerCharacter::Action_Skill_E()
 {
+	if (TEXT("SKill_E") == m_pAnim->Get_AnimType())
+		return;
+
 	m_pAnim->Set_AnimType(TEXT("Skill_E"));
 }
 
 void APlayerCharacter::Action_Skill_R()
 {
+	if (TEXT("SKill_R") == m_pAnim->Get_AnimType())
+		return;
+
 	m_pAnim->Set_AnimType(TEXT("Skill_R"));
 }
 
@@ -271,7 +296,7 @@ void APlayerCharacter::Action_Evade()
 {
 	FString strType = m_pAnim->Get_AnimType();
 
-	if (TEXT("Evade") == strType || TEXT("Skill_E") == strType || ECharacterState::Stun == m_eState)
+	if (TEXT("Evade") == strType || TEXT("Skill_E") == strType || ECharacterState::Stun == m_pAnim->Get_State())
 		return;
 
 	m_pAnim->Set_AnimType(TEXT("Evade"));
@@ -381,6 +406,64 @@ bool APlayerCharacter::CollisionCheck(TArray<FHitResult>& resultOut)
 	return bCollision;
 }
 
+bool APlayerCharacter::CollisionCheck_Sphere(TArray<FHitResult>& resultOut)
+{
+	FCollisionQueryParams tParams(NAME_None, false, this);
+
+	FVector vLoc = GetActorLocation();
+	FRotator rot = GetActorRotation();
+
+	bool bCollision = GetWorld()->SweepMultiByChannel(resultOut, vLoc, vLoc, rot.Quaternion()
+		, (ECollisionChannel)CollisionPlayerAttack, FCollisionShape::MakeSphere(2000.f), tParams);
+
+#if ENABLE_DRAW_DEBUG
+
+	FVector vCenter = vLoc;
+
+	FColor DrawColor = bCollision ? FColor::Red : FColor::Green;
+
+	DrawDebugSphere(GetWorld(), vCenter, 2000.f, 10, DrawColor, false, 1.f);
+#endif
+
+	if (true == bCollision)
+	{
+		FVector vForward = GetActorForwardVector();
+
+		FDamageEvent tEvent;
+
+		LOGW("CollCnt : %d", resultOut.Num());
+
+		for (auto& result : resultOut)
+		{
+			AMonster* pMonster = Cast<AMonster>(result.GetActor());
+
+			FVector vDir = pMonster->GetActorLocation() - vLoc;
+			vDir.Normalize();
+
+			float fAngle = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(vForward, vDir)));
+
+			LOGW("angle : %f", fAngle);
+
+			if (40.f > fAngle)
+			{
+				pMonster->Set_Frozen(5.f);
+
+				FActorSpawnParameters tSpawnParams;
+
+				tSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+				auto HitEffect = GetWorld()->SpawnActor<ASkillEffect>(result.ImpactPoint, result.ImpactNormal.Rotation(), tSpawnParams);
+
+				HitEffect->Load_Particle(TEXT("ParticleSystem'/Game/AdvancedMagicFX12/particles/P_ky_hit_ice.P_ky_hit_ice'"));
+
+				pMonster->TakeDamage(m_fAttackPoint, tEvent, GetController(), this);
+			}
+		}
+	}
+
+	return bCollision;
+}
+
 bool APlayerCharacter::CollisionCheck_Knockback(TArray<FHitResult>& resultOut)
 {
 	FCollisionQueryParams tParams(NAME_Name, false, this);
@@ -406,6 +489,8 @@ bool APlayerCharacter::CollisionCheck_Knockback(TArray<FHitResult>& resultOut)
 		for (auto result : resultOut)
 		{
 			AMonster* pMonster = Cast<AMonster>(result.GetActor());
+
+			pMonster->Set_Knockback(0.25f);
 
 			FVector vMonsterLoc = pMonster->GetActorLocation() + (vForward * 2000.f * GetWorld()->GetDeltaSeconds());
 
@@ -461,20 +546,6 @@ void APlayerCharacter::SkillQ_Move()
 	CollisionCheck_Knockback(resultArray);
 
 	SetActorLocation(vLoc);
-}
-
-void APlayerCharacter::StunEnd()
-{
-	m_pAnim->Set_AnimType(TEXT("Idle"));
-
-	m_isAttacking = false;
-	m_isSaveAttack = false;
-	m_isStun = false;
-}
-
-void APlayerCharacter::SkillE_StunAttack()
-{
-	m_pAnim->Set_AnimType(TEXT("Skill_E"));
 }
 
 void APlayerCharacter::ResetPrimaryAttack()
