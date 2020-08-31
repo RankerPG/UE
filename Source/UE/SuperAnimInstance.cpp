@@ -8,6 +8,9 @@ USuperAnimInstance::USuperAnimInstance()
 
 void USuperAnimInstance::Set_Frozen(float fFrozenTime)
 {
+	if (true == DeathCheck())
+		return;
+
 	m_eState = ECharacterState::Frozen;
 
 	if (true == m_FrozenTimerHandle.IsValid())
@@ -19,6 +22,9 @@ void USuperAnimInstance::Set_Frozen(float fFrozenTime)
 
 void USuperAnimInstance::Set_Stun(float fStunTime)
 {
+	if (true == DeathCheck())
+		return;
+
 	m_eState = ECharacterState::Stun;
 
 	if (true == m_StunTimerHandle.IsValid())
@@ -29,6 +35,9 @@ void USuperAnimInstance::Set_Stun(float fStunTime)
 
 void USuperAnimInstance::Set_Knockback(float fKnockbackTime)
 {
+	if (true == DeathCheck())
+		return;
+
 	m_eState = ECharacterState::Knockback;
 
 	if (true == m_FrozenTimerHandle.IsValid())
@@ -68,6 +77,11 @@ void USuperAnimInstance::AnimNotify_ChangePlayRate_100()
 void USuperAnimInstance::AnimNotify_ChangePlayRate_200()
 {
 	m_fPlayRate = 2.f;
+}
+
+bool USuperAnimInstance::DeathCheck()
+{
+	return TEXT("Death") == m_strCurrentAnimType;
 }
 
 void USuperAnimInstance::FrozenEnd()

@@ -19,6 +19,7 @@ public:
 
 	//Set
 	void Set_AnimType(const FString& strName) { m_strCurrentAnimType = strName; }
+	void Set_State(ECharacterState eState) { m_eState = eState; }
 	void Set_Frozen(float fFrozenTime);
 	void Set_Stun(float fStunTime);
 	void Set_Knockback(float fKnockbackTime);
@@ -39,6 +40,8 @@ protected:
 		void AnimNotify_ChangePlayRate_200();
 
 protected:
+	bool DeathCheck();
+
 	void FrozenEnd();
 	void StunEnd();
 	void KnockbackEnd();

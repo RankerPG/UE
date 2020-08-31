@@ -33,6 +33,7 @@ void UMonsterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	if (IsValid(m_pMonster))
 	{
+
 		if (m_strArray[(int)EMonsterAnimType::Death] == m_strCurrentAnimType || ECharacterState::Running != m_eState)
 			return;
 
@@ -62,6 +63,9 @@ void UMonsterAnimInstance::AnimNotify_DeathEnd()
 
 void UMonsterAnimInstance::AnimNotify_AttackEnd()
 {
+	if (m_strHit == m_strCurrentAnimType)
+		return;
+
 	if (IsValid(m_pMonster))
 	{
 		m_pMonster->AttackEnd();

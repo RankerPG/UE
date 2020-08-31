@@ -62,7 +62,7 @@ void UBTTask_Patrol::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemo
 
 	if (pMonster->Get_HP() > 0.f)
 	{
-		pMonster->Set_AnimSequence(TEXT("Patrol"));
+		pMonster->Set_AnimType(TEXT("Patrol"));
 
 		pMonster->GetCharacterMovement()->MaxWalkSpeed = 200.f;
 

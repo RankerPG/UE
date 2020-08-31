@@ -53,6 +53,9 @@ protected:
 	UFUNCTION()
 		void AnimNotify_SkillQMovingOnOff();
 
+	UFUNCTION()
+		void AnimNotify_CreateFrozenDecal();
+
 protected:
 	class APlayerCharacter* m_pPlayer;
 

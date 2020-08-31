@@ -19,6 +19,8 @@ AMonster::AMonster()
 	m_pMesh = Cast<USkeletalMeshComponent>(GetComponentByClass(USkeletalMeshComponent::StaticClass()));
 
 	m_iPatrolNum = 0;
+
+	m_isAttackEnable = true;
 }
 
 FString AMonster::Get_AnimType()
@@ -41,7 +43,7 @@ ECharacterState AMonster::Get_State()
 	return m_pAnim->Get_State();
 }
 
-void AMonster::Set_AnimSequence(const FString& strAnim)
+void AMonster::Set_AnimType(const FString& strAnim)
 {
 	m_pAnim->Set_AnimType(strAnim);
 }
@@ -127,12 +129,14 @@ float AMonster::TakeDamage(float DamageAmount, struct FDamageEvent const& Damage
 
 		if (m_fHP > 0.f)
 		{
-			if (ECharacterState::Running != m_pAnim->Get_State())
+			if (ECharacterState::Running == m_pAnim->Get_State())
 				m_pAnim->Set_AnimType(TEXT("Hit"));
 		}
 		else
 		{
 			m_pAnim->Set_AnimType(TEXT("Death"));
+
+			m_pAnim->Set_State(ECharacterState::Running);
 
 			GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
@@ -148,6 +152,13 @@ void AMonster::DeathEnd()
 	Destroy();
 }
 
+void AMonster::AttackDelay()
+{
+	GetWorldTimerManager().ClearTimer(m_AttackDelayTimerHandle);
+
+	m_isAttackEnable = true;
+}
+
 void AMonster::AttackEnd()
 {
 	m_OnAttackEnd.Broadcast();
@@ -156,6 +167,8 @@ void AMonster::AttackEnd()
 	{
 		m_OnAttackEnd.Remove(handle);
 	}
+
+	GetWorldTimerManager().SetTimer(m_AttackDelayTimerHandle, this, &AMonster::AttackDelay, m_fAttackDelay, false);
 }
 
 bool AMonster::CollisionCheck(FHitResult& resultOut)

@@ -48,6 +48,6 @@ void UBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 	{
 		pController->SetBlackboardDataAsObject(AMonsterAIController::m_TargetKey, nullptr);
 
-		pMonster->Set_AnimSequence(TEXT("Idle"));
+		pMonster->Set_AnimType(TEXT("Idle"));
 	}
 }

@@ -7,6 +7,8 @@
 #include "UEGameInstance.h"
 #include "UEGamemodeBase.h"
 #include "MainWidget.h"
+#include "Decal.h"
+#include "EffectSound.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -192,13 +194,13 @@ void APlayerCharacter::Move_Forward(float fScale)
 		return;
 	}
 
+	ERunType type = fScale > 0.f ? ERunType::RunFront : ERunType::RunBack;
+
+	m_pAnim->Set_RunType(type);
+
 	if (TEXT("Idle") == strAnimType || TEXT("Run") == strAnimType)
 	{
 		AddMovementInput(GetActorForwardVector(), fScale);
-
-		ERunType type = fScale > 0.f ? ERunType::RunFront : ERunType::RunBack;
-
-		m_pAnim->Set_RunType(type);
 	}
 }
 
@@ -215,26 +217,26 @@ void APlayerCharacter::Move_Side(float fScale)
 		return;
 	}
 
+	ERunType curType = m_pAnim->Get_RunType();
+
+	ERunType type = ERunType::RunNone;
+
+	GetWorld()->GetDeltaSeconds();
+
+	if (ERunType::RunFront != curType && ERunType::RunBack != curType)
+	{
+		type = fScale > 0.f ? ERunType::RunRight : ERunType::RunLeft;
+
+		m_pAnim->Set_RunType(type);
+	}
+
 	if (TEXT("Idle") == strAnimType || TEXT("Run") == strAnimType)
 	{
 		AddMovementInput(GetActorRightVector(), fScale);
 
-		ERunType curType = m_pAnim->Get_RunType();
-
-		ERunType type = ERunType::RunNone;
-
-		GetWorld()->GetDeltaSeconds();
-
 		float fDirection = fScale > 0.f ? 1.f : -1.f;
 
 		m_pAnim->Add_Yaw(fDirection);
-
-		if (ERunType::RunFront != curType && ERunType::RunBack != curType)
-		{
-			type = fScale > 0.f ? ERunType::RunRight : ERunType::RunLeft;
-
-			m_pAnim->Set_RunType(type);
-		}
 	}
 }
 
@@ -257,12 +259,10 @@ void APlayerCharacter::Mouse_Wheel(float fScale)
 
 void APlayerCharacter::Action_Jump()
 {
-	if (false == m_pAnim->Get_JumpEnable() || true == m_isStun)
+	if (false == m_pAnim->Get_JumpEnable() || ECharacterState::Running != m_pAnim->Get_State())
 		return;
 
 	Jump();
-
-	m_pAnim->Set_AnimType(TEXT("Jump"));
 }
 
 void APlayerCharacter::Action_Attack()
@@ -296,7 +296,8 @@ void APlayerCharacter::Action_Evade()
 {
 	FString strType = m_pAnim->Get_AnimType();
 
-	if (TEXT("Evade") == strType || TEXT("Skill_E") == strType || ECharacterState::Stun == m_pAnim->Get_State())
+	if (TEXT("Skill_Q") == strType || TEXT("Evade") == strType || TEXT("Jump") == strType 
+		|| ECharacterState::Running != m_pAnim->Get_State())
 		return;
 
 	m_pAnim->Set_AnimType(TEXT("Evade"));
@@ -457,6 +458,13 @@ bool APlayerCharacter::CollisionCheck_Sphere(TArray<FHitResult>& resultOut)
 				HitEffect->Load_Particle(TEXT("ParticleSystem'/Game/AdvancedMagicFX12/particles/P_ky_hit_ice.P_ky_hit_ice'"));
 
 				pMonster->TakeDamage(m_fAttackPoint, tEvent, GetController(), this);
+
+				// Sound
+				AEffectSound* pSound = GetWorld()->SpawnActor<AEffectSound>(result.ImpactPoint, result.ImpactNormal.Rotation(), tSpawnParams);
+
+				pSound->LoadAudio(TEXT("SoundWave'/Game/Sound/Hit_SwordStabEarth_Rumble1.Hit_SwordStabEarth_Rumble1'"));
+
+				pSound->Play();
 			}
 		}
 	}
@@ -508,7 +516,7 @@ void APlayerCharacter::Evade_Move()
 
 	ERunType type = m_pAnim->Get_RunType();
 
-	float fScale = 1500.f * GetWorld()->GetDeltaSeconds(); // 0.55초 움직이므로 절반정도 움직인다고 보면 된다.
+	float fScale = 2500.f * GetWorld()->GetDeltaSeconds(); // 0.55초 움직이므로 절반정도 움직인다고 보면 된다.
 
 	FVector vLoc = GetActorLocation();
 
@@ -546,6 +554,21 @@ void APlayerCharacter::SkillQ_Move()
 	CollisionCheck_Knockback(resultArray);
 
 	SetActorLocation(vLoc);
+}
+
+void APlayerCharacter::SkillR_FrozenWorld()
+{
+	FActorSpawnParameters tParams;
+
+	tParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	ADecal* pDecal = GetWorld()->SpawnActor<ADecal>(GetActorLocation(), GetActorRotation(), tParams);
+
+	pDecal->Set_DecalSize(FVector(2000.f, 2000.f, 2000.f));
+
+	pDecal->Set_FadeTime(0.f, 0.5f, 5.f, 0.5f);
+
+	pDecal->SetDecalMaterial(TEXT("Material'/Game/Material/MT_Decal.MT_Decal'"));
 }
 
 void APlayerCharacter::ResetPrimaryAttack()

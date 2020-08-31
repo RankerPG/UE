@@ -26,13 +26,14 @@ public:
 	float Get_TraceRange() { return m_fTraceRange; }
 	float Get_AttackRange() { return m_fAttackRange; }
 	float Get_HP() { return m_fHP; }
+	bool Get_AttackEnable() { return m_isAttackEnable; }
+	bool Get_PatrolEnable() { return m_isPatrolEnable; }
 
-	bool Get_PatrolEnable() { return m_bPatrolEnable; }
-
-	void Set_AnimSequence(const FString& strAnim);
-	void Set_PatrolEnable(bool bPatrolEnable) { m_bPatrolEnable = bPatrolEnable; }
 	UFUNCTION(BlueprintCallable)
 		void Add_PatrolPos(const FVector& vPos) { m_PatrolPosArray.Add(vPos); }
+	void Set_AnimType(const FString& strAnim);
+	void Set_PatrolEnable(bool isPatrolEnable) { m_isPatrolEnable = isPatrolEnable; }
+	void Set_AttackEnable(bool isAttackEnable) { m_isAttackEnable = isAttackEnable; }
 	void Set_Frozen(float fFrozenTime);
 	void Set_Stun(float fStunTime);
 	void Set_Knockback(float fKnockbackTime);
@@ -63,6 +64,7 @@ public:
 	virtual void DeathEnd();
 
 public:
+	void AttackDelay();
 	void AttackEnd();
 
 	bool CollisionCheck(FHitResult& resultOut);
@@ -87,7 +89,11 @@ protected:
 	FOnAttackEndDelegate m_OnAttackEnd;
 	TArray<FDelegateHandle> m_AttackEndHandleArray;
 
-	bool m_bPatrolEnable;
+	FTimerHandle m_AttackDelayTimerHandle;
+
+	bool m_isPatrolEnable;
+
+	bool m_isAttackEnable;
 
 protected: // status
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))

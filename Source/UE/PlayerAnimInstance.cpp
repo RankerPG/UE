@@ -91,7 +91,6 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		}
 		else if (m_strArray[(int)EPlayerAnimType::Skill_R] == m_strCurrentAnimType)
 		{
-
 		}
 		else if (m_strArray[(int)EPlayerAnimType::Evade] == m_strCurrentAnimType)
 		{
@@ -231,18 +230,9 @@ void UPlayerAnimInstance::AnimNotify_CollisionCheck_Sphere()
 
 		if (bCollision)
 		{
-
 			for (auto& result : resultArray)
 			{
-				FActorSpawnParameters tSpawnParams;
 
-				tSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
-				AEffectSound* pSound = GetWorld()->SpawnActor<AEffectSound>(result.ImpactPoint, result.ImpactNormal.Rotation(), tSpawnParams);
-
-				pSound->LoadAudio(TEXT("SoundWave'/Game/Sound/Hit_SwordStabEarth_Rumble1.Hit_SwordStabEarth_Rumble1'"));
-
-				pSound->Play();
 			}
 		}
 	}
@@ -261,4 +251,9 @@ void UPlayerAnimInstance::AnimNotify_AttackToDash()
 void UPlayerAnimInstance::AnimNotify_SkillQMovingOnOff()
 {
 	m_pPlayer->Set_SkillQMoving();
+}
+
+void UPlayerAnimInstance::AnimNotify_CreateFrozenDecal()
+{
+	m_pPlayer->SkillR_FrozenWorld();
 }

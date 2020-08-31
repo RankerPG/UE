@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "info.h"
@@ -22,5 +20,5 @@ protected:
 	void AttackEnd();
 
 private:
-	bool m_bAttack;
+	bool m_isAttackEnd;
 };
