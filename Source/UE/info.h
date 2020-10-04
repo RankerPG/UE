@@ -100,3 +100,20 @@ enum ECollisionChannelConvert
 	Collsion9,
 	Collsion10,
 };
+
+UENUM(BlueprintType)
+enum class EItemType : uint8
+{
+	Weapon,
+	Armor,
+	Potion,
+};
+
+UENUM(BlueprintType)
+enum class EItemStatusType : uint8
+{
+	Attack,
+	Armor,
+	HP,
+	MP,
+};

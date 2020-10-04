@@ -7,6 +7,35 @@
 #include "Engine/GameInstance.h"
 #include "UEGameInstance.generated.h"
 
+USTRUCT(Atomic, BlueprintType)
+struct FItemOptionInfo
+{
+	GENERATED_BODY();
+
+public:
+	UPROPERTY(category = info, EditAnywhere, BlueprintReadWrite)
+		EItemStatusType eType;
+
+	UPROPERTY(category = info, EditAnywhere, BlueprintReadWrite)
+		float fOption;
+};
+
+USTRUCT(Atomic, BlueprintType)
+struct FGameItemInfo
+{
+	GENERATED_BODY();
+
+public:
+	UPROPERTY(category = info, EditAnywhere, BlueprintReadWrite)
+		EItemType eType;
+
+	UPROPERTY(category = info, EditAnywhere, BlueprintReadWrite)
+		FString strName;
+
+	UPROPERTY(category = info, EditAnywhere, BlueprintReadWrite)
+		TArray<FItemOptionInfo> StatusInfoArray;
+};
+
 USTRUCT(BlueprintType)
 struct FMonsterInfo : public FTableRowBase
 {

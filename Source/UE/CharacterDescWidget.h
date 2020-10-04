@@ -8,8 +8,4 @@ UCLASS()
 class UE_API UCharacterDescWidget : public UUserWidget
 {
 	GENERATED_BODY()
-	
-private:
-	
-
 };

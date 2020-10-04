@@ -2,6 +2,7 @@
 #include "PlayerStatusHUDWidget.h"
 #include "PlayerStatusWidget.h"
 #include "components/Button.h"
+#include "inventoryListviewWidget.h"
 
 void UMainWidget::Set_HPBar(float fPercent)
 {
@@ -21,8 +22,13 @@ void UMainWidget::NativeConstruct()
 
 	m_pStatusWidget = Cast<UPlayerStatusWidget>(GetWidgetFromName(TEXT("PlayerStatus")));
 
+	m_pInvenWidget = Cast<UInventoryListViewWidget>(GetWidgetFromName(TEXT("InventoryListView")));
+
 	m_pStatusButton = Cast<UButton>(GetWidgetFromName(TEXT("Button_Status")));
 	m_pStatusButton->OnClicked.AddDynamic(this, &UMainWidget::Click_StatusButton);
+
+	m_pInvenButton = Cast<UButton>(GetWidgetFromName(TEXT("Button_Inven")));
+	m_pInvenButton->OnClicked.AddDynamic(this, &UMainWidget::Click_InvenButton);
 }
 
 void UMainWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -36,4 +42,12 @@ void UMainWidget::Click_StatusButton()
 		m_pStatusWidget->SetVisibility(ESlateVisibility::Collapsed);
 	else
 		m_pStatusWidget->SetVisibility(ESlateVisibility::Visible);
+}
+
+void UMainWidget::Click_InvenButton()
+{
+	if (ESlateVisibility::Visible == m_pInvenWidget->GetVisibility())
+		m_pInvenWidget->SetVisibility(ESlateVisibility::Collapsed);
+	else
+		m_pInvenWidget->SetVisibility(ESlateVisibility::Visible);
 }

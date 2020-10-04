@@ -21,10 +21,17 @@ public:
 	UFUNCTION()
 		void Click_StatusButton();
 
+	UFUNCTION()
+		void Click_InvenButton();
+
 protected:
 	class UPlayerStatusHUDWidget* m_pStatusHUDWidget;
 
 	class UPlayerStatusWidget* m_pStatusWidget;
 
+	class UInventoryListViewWidget* m_pInvenWidget;
+
 	class UButton* m_pStatusButton;
+
+	class UButton* m_pInvenButton;
 };

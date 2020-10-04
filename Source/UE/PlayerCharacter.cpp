@@ -9,6 +9,8 @@
 #include "MainWidget.h"
 #include "Decal.h"
 #include "EffectSound.h"
+#include <components/WidgetComponent.h>
+#include "CharacterInfoHUDWidget.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -51,6 +53,17 @@ APlayerCharacter::APlayerCharacter()
 
 	GetCapsuleComponent()->SetCollisionProfileName(TEXT("Player"));
 
+	m_pCharacterInfoHUDWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InfoHUD"));
+	m_pCharacterInfoHUDWidget->SetupAttachment(GetMesh());
+	m_pCharacterInfoHUDWidget->SetWidgetSpace(EWidgetSpace::Screen);
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> CharacterInfoHUDClass(TEXT("WidgetBlueprint'/Game/UI/BP_CharacterInfoHUDWidget.BP_CharacterInfoHUDWidget_C'"));
+
+	if (CharacterInfoHUDClass.Succeeded())
+	{
+		m_pCharacterInfoHUDWidget->SetWidgetClass(CharacterInfoHUDClass.Class);
+	}
+
 	m_iAttackCombo = 0;
 
 	m_isAttacking = false;
@@ -78,6 +91,19 @@ void APlayerCharacter::Set_Frozen(float fFrozenTime)
 void APlayerCharacter::Set_Stun(float fStunTime)
 {
 	m_pAnim->Set_Stun(fStunTime);
+}
+
+void APlayerCharacter::Update_HP(float fScale)
+{
+	m_fHP += fScale;
+
+	m_fHP = m_fHP < m_fHPMax ? m_fHP : m_fHPMax;
+
+	AUEGameModeBase* pGameMode = Cast<AUEGameModeBase>(GetWorld()->GetAuthGameMode());
+
+	pGameMode->Get_MainWidget()->Set_HPBar(m_fHP / m_fHPMax);
+
+	Cast<UCharacterInfoHUDWidget>(m_pCharacterInfoHUDWidget->GetUserWidgetObject())->Set_HPBar(m_fHP / m_fHPMax);
 }
 
 void APlayerCharacter::Reset_AttackInfo()
@@ -161,15 +187,11 @@ float APlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const
 	fDamage = fDamage - m_fArmorPoint;
 	fDamage = fDamage > 0.f ? fDamage : 1.f;
 
-	m_fHP -= fDamage;
+	Update_HP(-fDamage);
 
 	FString str = FString::Printf(TEXT("hp : %f"), m_fHP);
 
 	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, str);
-
-	AUEGameModeBase* pGameMode = Cast<AUEGameModeBase>(GetWorld()->GetAuthGameMode());
-
-	pGameMode->Get_MainWidget()->Set_HPBar(m_fHP / m_fHPMax);
 
 	return fDamage;
 }

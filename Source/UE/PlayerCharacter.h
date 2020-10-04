@@ -21,6 +21,7 @@ public:
 	void Set_SkillQMoving() { m_isSkillQMoving ^= true; }
 	void Set_Frozen(float fFrozenTime);
 	void Set_Stun(float fStunTime);
+	void Update_HP(float fScale);
 	void Reset_AttackInfo();
 
 protected:
@@ -69,6 +70,9 @@ private:
 
 	UPROPERTY(category = Mesh, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		USkeletalMeshComponent* m_pMesh;
+
+	UPROPERTY(category = UI, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		class UWidgetComponent* m_pCharacterInfoHUDWidget;
 
 	UPROPERTY(category = Attack, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		int m_iAttackCombo;

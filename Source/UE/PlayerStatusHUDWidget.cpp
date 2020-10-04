@@ -29,6 +29,4 @@ void UPlayerStatusHUDWidget::NativeConstruct()
 void UPlayerStatusHUDWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
-
-	
 }
