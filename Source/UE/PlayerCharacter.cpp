@@ -11,6 +11,7 @@
 #include "EffectSound.h"
 #include <components/WidgetComponent.h>
 #include "CharacterInfoHUDWidget.h"
+#include "IceSpike.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -28,14 +29,6 @@ APlayerCharacter::APlayerCharacter()
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	m_pMesh = GetMesh();
-
-	// ลอมü
-	//static ConstructorHelpers::FClassFinder<UPlayerAnimInstance> ClassFinder(TEXT("AnimBlueprint'/Game/Player/BP_AuroraAnim.BP_AuroraAnim_C'"));
-
-	//if (ClassFinder.Succeeded())
-	//{
-	//	GetMesh()->SetAnimInstanceClass(ClassFinder.Class);
-	//}
 
 	m_pSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	m_pSpringArm->SetupAttachment(RootComponent);
@@ -62,6 +55,13 @@ APlayerCharacter::APlayerCharacter()
 	if (CharacterInfoHUDClass.Succeeded())
 	{
 		m_pCharacterInfoHUDWidget->SetWidgetClass(CharacterInfoHUDClass.Class);
+	}
+
+	static ConstructorHelpers::FClassFinder<AIceSpike> SpikeClass(TEXT("Blueprint'/Game/Skills/BP_IceSpike.BP_IceSpike_C'"));
+
+	if (SpikeClass.Succeeded())
+	{
+		m_pSpike = SpikeClass.Class;
 	}
 
 	m_iAttackCombo = 0;
@@ -122,6 +122,7 @@ void APlayerCharacter::BeginPlay()
 	UUEGameInstance* pInstance = Cast<UUEGameInstance>(GetGameInstance());
 	FSaveCharacterInfo* pInfo = pInstance->Get_CharacterInfo();
 
+	m_strName = TEXT("Aurora");
 	m_eJob = pInfo->Job;
 	m_fAttackPoint = pInfo->AttackPoint;
 	m_fArmorPoint = pInfo->ArmorPoint;
@@ -133,6 +134,12 @@ void APlayerCharacter::BeginPlay()
 	m_iLevel = pInfo->Level;
 	m_iExp = pInfo->Exp;
 	m_iMoney = pInfo->Money;
+
+	m_fSkillQDamagePoint = 30.f;
+	m_fSkillEDamagePoint = 30.f;
+	m_fSkillRDamagePoint = 100.f;
+
+	Cast<UCharacterInfoHUDWidget>(m_pCharacterInfoHUDWidget->GetUserWidgetObject())->Set_Name(m_strName);
 }
 
 void APlayerCharacter::Tick(float DeltaTime)
@@ -400,8 +407,6 @@ bool APlayerCharacter::CollisionCheck(TArray<FHitResult>& resultOut)
 		{
 			AMonster* pMonster = Cast<AMonster>(result.GetActor());
 
-			pMonster->TakeDamage(m_fAttackPoint, tEvent, GetController(), this);
-
 			FActorSpawnParameters tSpawnParams;
 
 			tSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
@@ -416,12 +421,14 @@ bool APlayerCharacter::CollisionCheck(TArray<FHitResult>& resultOut)
 			}
 			else if (2 == iAttackType) // Skill_Q
 			{
-				HitEffect->Load_Particle(TEXT("ParticleSystem'/Game/AdvancedMagicFX12/particles/P_ky_hit_water.P_ky_hit_water'"));
+				HitEffect->Load_Particle(TEXT("ParticleSystem'/Game/AdvancedMagicFX12/particles/P_ky_hit_shine.P_ky_hit_shine'"));
 				pMonster->Set_Stun(3.f);
+				pMonster->TakeDamage(m_fSkillQDamagePoint, tEvent, GetController(), this);
 			}
 			else
 			{
 				HitEffect->Load_Particle(TEXT("ParticleSystem'/Game/AdvancedMagicFX12/particles/P_ky_hit_water.P_ky_hit_water'"));
+				pMonster->TakeDamage(m_fAttackPoint, tEvent, GetController(), this);
 			}
 		}
 	}
@@ -479,7 +486,7 @@ bool APlayerCharacter::CollisionCheck_Sphere(TArray<FHitResult>& resultOut)
 
 				HitEffect->Load_Particle(TEXT("ParticleSystem'/Game/AdvancedMagicFX12/particles/P_ky_hit_ice.P_ky_hit_ice'"));
 
-				pMonster->TakeDamage(m_fAttackPoint, tEvent, GetController(), this);
+				pMonster->TakeDamage(m_fSkillRDamagePoint, tEvent, GetController(), this);
 
 				// Sound
 				AEffectSound* pSound = GetWorld()->SpawnActor<AEffectSound>(result.ImpactPoint, result.ImpactNormal.Rotation(), tSpawnParams);
@@ -576,6 +583,56 @@ void APlayerCharacter::SkillQ_Move()
 	CollisionCheck_Knockback(resultArray);
 
 	SetActorLocation(vLoc);
+}
+
+void APlayerCharacter::SkillE_SpikeCircle()
+{
+	FVector vLoc = GetMesh()->GetComponentLocation(); 
+	FVector vFoward = GetActorForwardVector() * 400.f;
+
+	float fAngle = 360.f / 20.f;
+
+	bool isPlaySound = false;
+
+	//Sound
+	FActorSpawnParameters tSpawnParams;
+
+	tSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	AEffectSound* pSound = GetWorld()->SpawnActor<AEffectSound>(GetActorLocation(), GetActorRotation(), tSpawnParams);
+
+	pSound->LoadAudio(TEXT("SoundWave'/Game/Sound/Destroy_SkillE.Destroy_SkillE'"));
+
+	pSound->Play();
+
+
+	for (int i = 0; i < 21; ++i)
+	{
+		FActorSpawnParameters params;
+
+		params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+		AIceSpike* pIceSpike = GetWorld()->SpawnActor<AIceSpike>(m_pSpike, params);
+
+		pIceSpike->SetActorScale3D(FVector(2.f, 2.f, 2.f));
+
+		FRotator rot(0.f, -135.f + fAngle * i, 0.f);
+
+		FVector vRotFoward = rot.RotateVector(vFoward);
+
+		rot.Pitch = 45.f;
+		rot.Yaw += 90.f;
+
+		pIceSpike->SetActorLocationAndRotation(vLoc + vRotFoward, GetActorRotation() + rot);
+
+		pIceSpike->Set_VisibleTime(0.02f * i);
+
+		if (1 == i)
+		{
+			isPlaySound = true;
+			pIceSpike->Set_SoundPlayActor(true);
+		}
+	}
 }
 
 void APlayerCharacter::SkillR_FrozenWorld()

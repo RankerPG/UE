@@ -10,6 +10,7 @@ class UE_API UCharacterInfoHUDWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
+	void Set_Name(FString strName);
 	void Set_HPBar(float fPercent);
 
 protected:
@@ -19,4 +20,9 @@ protected:
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		class UProgressBar* m_pHPBar;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		class UTextBlock* m_pTextName;
+
+	FString m_strName;
 };

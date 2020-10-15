@@ -1,6 +1,8 @@
 #include "Minion.h"
 #include "MonsterAnimInstance.h"
 #include "MinionAIController.h"
+#include "DamageFontWidget.h"
+#include <components/WidgetComponent.h>
 
 AMinion::AMinion()
 {

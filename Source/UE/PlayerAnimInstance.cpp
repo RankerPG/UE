@@ -257,3 +257,8 @@ void UPlayerAnimInstance::AnimNotify_CreateFrozenDecal()
 {
 	m_pPlayer->SkillR_FrozenWorld();
 }
+
+void UPlayerAnimInstance::AnimNotify_IceSpike()
+{
+	m_pPlayer->SkillE_SpikeCircle();
+}

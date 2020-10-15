@@ -6,7 +6,7 @@
 
 DECLARE_MULTICAST_DELEGATE(FOnAttackEndDelegate)
 
-UCLASS()
+UCLASS(Blueprintable, BlueprintType)
 class UE_API AMonster : public ACharacter
 {
 	GENERATED_BODY()
@@ -34,8 +34,11 @@ public:
 	void Set_AnimType(const FString& strAnim);
 	void Set_PatrolEnable(bool isPatrolEnable) { m_isPatrolEnable = isPatrolEnable; }
 	void Set_AttackEnable(bool isAttackEnable) { m_isAttackEnable = isAttackEnable; }
-	void Set_Frozen(float fFrozenTime);
-	void Set_Stun(float fStunTime);
+	UFUNCTION(BlueprintCallable)
+		void Set_Frozen(float fFrozenTime);
+	UFUNCTION(BlueprintCallable)
+		void Set_Stun(float fStunTime);
+	UFUNCTION(BlueprintCallable)
 	void Set_Knockback(float fKnockbackTime);
 
 public:
@@ -82,6 +85,12 @@ protected:
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		int32 m_iPatrolNum;
 
+	UPROPERTY(category = UI, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		TArray<class UWidgetComponent*> m_arrFont;
+
+	UPROPERTY(category = UI, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		class UWidgetComponent* m_pMonsterInfoHUDWidget;
+
 	class AMinionAIController* m_pController;
 
 	class UMonsterAnimInstance* m_pAnim;
@@ -90,6 +99,8 @@ protected:
 	TArray<FDelegateHandle> m_AttackEndHandleArray;
 
 	FTimerHandle m_AttackDelayTimerHandle;
+
+	int m_iFontIndex;
 
 	bool m_isPatrolEnable;
 

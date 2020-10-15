@@ -9,7 +9,8 @@ void UInventoryListViewWidget::NativeConstruct()
 
 	SetVisibility(ESlateVisibility::Collapsed);
 
-	//m_pPlayer = Cast<APlayerCharacter>(GetWorld()->GetFirstPlayerController()->GetPawn());
+	// 네트워크시 변경 필요
+	m_pPlayer = Cast<APlayerCharacter>(GetWorld()->GetFirstPlayerController()->GetPawn());
 }
 
 void UInventoryListViewWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -28,8 +29,8 @@ void UInventoryListViewWidget::InitList()
 
 		pData->Set_ItemIndex(i);
 		pData->Set_ItemCount(i + 1);
-		pData->Set_ItemName(TEXT("Weapon"));
-		pData->Set_ItemIconTexture(TEXT("Texture2D'/Game/UI/weapon.weapon'"));
+		pData->Set_ItemName(TEXT("Potion"));
+		pData->Set_ItemIconTexture(TEXT("Texture2D'/Game/UI/potion.potion'"));
 		
 		m_pListView->AddItem(pData);
 	}
@@ -37,5 +38,7 @@ void UInventoryListViewWidget::InitList()
 
 void UInventoryListViewWidget::UseItem(UInventoryItemData* pData)
 {
-	//m_pPlayer->Update_HP(20.f);
+	m_pPlayer->Update_HP(20.f);
+
+	m_pListView->RemoveItem(pData);
 }

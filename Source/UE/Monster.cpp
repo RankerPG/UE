@@ -4,6 +4,11 @@
 #include "UEGameInstance.h"
 #include "MinionAIController.h"
 #include "DrawDebugHelpers.h"
+#include "DamageFontWidget.h"
+#include <components/WidgetComponent.h>
+#include "CharacterInfoHUDWidget.h"
+#include "SkillEffect.h"
+#include "EffectSound.h"
 
 AMonster::AMonster()
 {
@@ -12,8 +17,6 @@ AMonster::AMonster()
 	GetCapsuleComponent()->SetCollisionProfileName(TEXT("Monster"));
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	//GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AMonster::CollsionHit);
-
 	m_pAnim = nullptr;
 
 	m_pMesh = Cast<USkeletalMeshComponent>(GetComponentByClass(USkeletalMeshComponent::StaticClass()));
@@ -21,6 +24,36 @@ AMonster::AMonster()
 	m_iPatrolNum = 0;
 
 	m_isAttackEnable = true;
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> DamageWidgetFinder(TEXT("WidgetBlueprint'/Game/UI/BP_DamageFont.BP_DamageFont_C'"));
+
+	if (DamageWidgetFinder.Succeeded())
+	{
+		for (int i = 0; i < 20; ++i)
+		{
+			FString strName = FString::Printf(TEXT("DamageFont_%d"), i);
+			UWidgetComponent* pDamageFontWidget = CreateDefaultSubobject<UWidgetComponent>(FName(*strName));
+			pDamageFontWidget->SetupAttachment(m_pMesh);
+			pDamageFontWidget->SetWidgetSpace(EWidgetSpace::Screen);
+
+			pDamageFontWidget->SetWidgetClass(DamageWidgetFinder.Class);
+
+			m_arrFont.Add(pDamageFontWidget);
+		}
+	}
+
+	m_pMonsterInfoHUDWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InfoHUD"));
+	m_pMonsterInfoHUDWidget->SetupAttachment(GetMesh());
+	m_pMonsterInfoHUDWidget->SetWidgetSpace(EWidgetSpace::Screen);
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> CharacterInfoHUDClass(TEXT("WidgetBlueprint'/Game/UI/BP_CharacterInfoHUDWidget.BP_CharacterInfoHUDWidget_C'"));
+	
+	if (CharacterInfoHUDClass.Succeeded())
+	{
+		m_pMonsterInfoHUDWidget->SetWidgetClass(CharacterInfoHUDClass.Class);
+	}
+
+	m_iFontIndex = 0;
 }
 
 FString AMonster::Get_AnimType()
@@ -66,6 +99,13 @@ void AMonster::Set_Knockback(float fKnockbackTime)
 void AMonster::BeginPlay()
 {
 	Super::BeginPlay();
+
+	for (auto& font : m_arrFont)
+	{
+		Cast<UDamageFontWidget>(font->GetUserWidgetObject())->Set_Onwer(font);
+	}
+
+	Cast<UCharacterInfoHUDWidget>(m_pMonsterInfoHUDWidget->GetUserWidgetObject())->Set_Name(m_strMonsterName);
 }
 
 void AMonster::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -125,7 +165,13 @@ float AMonster::TakeDamage(float DamageAmount, struct FDamageEvent const& Damage
 
 		m_fHP -= fDamage;
 
-		//LOG(Warning, TEXT("%f"), m_fHP);
+		if (0 < m_arrFont.Num())
+		{
+			Cast<UDamageFontWidget>(m_arrFont[m_iFontIndex]->GetUserWidgetObject())->Set_DamageText(FString::FromInt((int)fDamage));
+			m_iFontIndex = (++m_iFontIndex) % 20;
+		}
+
+		Cast<UCharacterInfoHUDWidget>(m_pMonsterInfoHUDWidget->GetUserWidgetObject())->Set_HPBar(m_fHP / m_fMaxHP);
 
 		if (m_fHP > 0.f)
 		{
@@ -200,6 +246,20 @@ bool AMonster::CollisionCheck(FHitResult& resultOut)
 		resultOut.GetActor()->TakeDamage(20.f, damageEvent, m_pController, this);
 
 		// Add Effect
+		FActorSpawnParameters tSpawnParams;
+
+		tSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+		auto HitEffect = GetWorld()->SpawnActor<ASkillEffect>(resultOut.ImpactPoint, resultOut.ImpactNormal.Rotation(), tSpawnParams);
+
+		HitEffect->Load_Particle(TEXT("ParticleSystem'/Game/AdvancedMagicFX13/Particles/P_ky_impact.P_ky_impact'"));
+
+		// Sound
+		AEffectSound* pSound = GetWorld()->SpawnActor<AEffectSound>(resultOut.ImpactPoint, resultOut.ImpactNormal.Rotation(), tSpawnParams);
+
+		pSound->LoadAudio(TEXT("SoundWave'/Game/Sound/MinionAttack.MinionAttack'"));
+
+		pSound->Play();
 	}
 
 	return true;

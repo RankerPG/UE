@@ -56,6 +56,9 @@ protected:
 	UFUNCTION()
 		void AnimNotify_CreateFrozenDecal();
 
+	UFUNCTION()
+		void AnimNotify_IceSpike();
+
 protected:
 	class APlayerCharacter* m_pPlayer;
 

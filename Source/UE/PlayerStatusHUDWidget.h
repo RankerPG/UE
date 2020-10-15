@@ -11,7 +11,6 @@ class UE_API UPlayerStatusHUDWidget : public UUserWidget
 	
 public:
 	void Set_HPBar(float fPercent);
-
 	void Set_MPBar(float fPercent);
 
 protected:

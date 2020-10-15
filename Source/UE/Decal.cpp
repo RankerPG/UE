@@ -18,6 +18,18 @@ void ADecal::Set_FadeTime(float fInDelay, float fInDuration, float fOutDelay, fl
 	m_pDecal->SetFadeOut(fOutDelay, fOutDuration);
 }
 
+void ADecal::Set_Attackment(USceneComponent* pComponent)
+{
+	m_pDecal->SetupAttachment(pComponent);
+}
+
+void ADecal::SetDecalMaterial(const FString& strPath)
+{
+	UMaterial* pMtrl = LoadObject<UMaterial>(nullptr, *strPath);
+
+	m_pDecal->SetDecalMaterial(pMtrl);
+}
+
 void ADecal::BeginPlay()
 {
 	Super::BeginPlay();
@@ -26,13 +38,4 @@ void ADecal::BeginPlay()
 void ADecal::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-}
-
-void ADecal::SetDecalMaterial(const FString& strPath)
-{
-	UMaterial* pMtrl = LoadObject<UMaterial>(nullptr, *strPath);
-
-	m_pDecal->SetDecalMaterial(pMtrl);
-
-	//UMaterialInstanceDynamic* pDynamic = m_pDecal->CreateDynamicMaterialInstance();
 }

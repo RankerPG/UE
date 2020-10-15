@@ -14,6 +14,7 @@ public:
 
 public:
 	void Set_DecalSize(FVector vSize) { m_pDecal->DecalSize = vSize; }
+	void Set_Attackment(USceneComponent* pComponent);
 	void Set_FadeTime(float fInDelay, float fInDuration, float fOutDelay, float fOutDuration);
 
 protected:
