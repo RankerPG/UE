@@ -1,6 +1,7 @@
 #include "PlayerAnimInstance.h"
 #include "PlayerCharacter.h"
 #include "EffectSound.h"
+#include "MaterialSound.h"
 
 UPlayerAnimInstance::UPlayerAnimInstance()
 {
@@ -48,6 +49,18 @@ void UPlayerAnimInstance::NativeInitializeAnimation()
 	m_pPlayer = Cast<APlayerCharacter>(TryGetPawnOwner());
 
 	m_fPlayRate = 1.f;
+
+	m_pMaterialSound = NewObject<UMaterialSound>(this, TEXT("MaterialSound"));
+
+	m_pSound[0] = LoadObject<USoundBase>(nullptr, TEXT("SoundWave'/Game/Sound/Foot_Glass_HeelsRun24.Foot_Glass_HeelsRun24'"));
+	m_pSound[1] = LoadObject<USoundBase>(nullptr, TEXT("SoundWave'/Game/Sound/Foot_Glass_HeelsRun25.Foot_Glass_HeelsRun25'"));
+	m_pSound[2] = LoadObject<USoundBase>(nullptr, TEXT("SoundWave'/Game/Sound/Foot_Mud_Run01.Foot_Mud_Run01'"));
+	m_pSound[3] = LoadObject<USoundBase>(nullptr, TEXT("SoundWave'/Game/Sound/Foot_Mud_Run02.Foot_Mud_Run02'"));
+
+	//m_pMaterialSound->Load_Sound(TEXT("PMT_Grass"), TEXT("SoundWave'/Game/Sound/Foot_Glass_HeelsRun24.Foot_Glass_HeelsRun24'"));
+	//m_pMaterialSound->Load_Sound(TEXT("PMT_GrassL"), TEXT("SoundWave'/Game/Sound/Foot_Glass_HeelsRun25.Foot_Glass_HeelsRun25'"));
+	//m_pMaterialSound->Load_Sound(TEXT("PMT_Desert"), TEXT("SoundWave'/Game/Sound/Foot_Mud_Run01.Foot_Mud_Run01'"));
+	//m_pMaterialSound->Load_Sound(TEXT("PMT_DesertL"), TEXT("SoundWave'/Game/Sound/Foot_Mud_Run02.Foot_Mud_Run02'"));
 }
 
 void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
@@ -145,6 +158,82 @@ void UPlayerAnimInstance::Add_Yaw(float fDirection)
 		m_fYaw = 45.f;
 }
 
+void UPlayerAnimInstance::PlayFootSound(const FName& strName, bool isRight)
+{
+	USkeletalMeshComponent* pMesh = m_pPlayer->GetMesh();
+
+	FTransform socketTrans = pMesh->GetSocketTransform(strName);
+
+	FVector vStart = socketTrans.GetLocation() - FVector::UpVector * 1000.f;
+
+	FVector vEnd = vStart + FVector::UpVector * 2000.f;
+
+	FHitResult result;
+	TArray<AActor*> ignoreActor;
+	ignoreActor.Add(m_pPlayer);
+
+	bool isResult = UKismetSystemLibrary::LineTraceSingle(GetWorld(), vStart, vEnd, UEngineTypes::ConvertToTraceType(ECC_WorldStatic), false
+		, ignoreActor, EDrawDebugTrace::None, result, true);
+
+	static int cnt = 0;
+
+	if (true == isResult)
+	{
+		if (!IsValid(result.GetActor()))
+			return;
+
+		FString strSoundName = result.PhysMaterial->GetName();
+
+		if (false == isRight)
+			strSoundName += TEXT("L");
+
+		LOGW("%s", *strSoundName);
+		/*
+		//m_pMaterialSound->Load_Sound(TEXT("PMT_Grass"), TEXT("SoundWave'/Game/Sound/Foot_Glass_HeelsRun24.Foot_Glass_HeelsRun24'"));
+		//m_pMaterialSound->Load_Sound(TEXT("PMT_GrassL"), TEXT("SoundWave'/Game/Sound/Foot_Glass_HeelsRun25.Foot_Glass_HeelsRun25'"));
+		//m_pMaterialSound->Load_Sound(TEXT("PMT_Desert"), TEXT("SoundWave'/Game/Sound/Foot_Mud_Run01.Foot_Mud_Run01'"));
+		//m_pMaterialSound->Load_Sound(TEXT("PMT_DesertL"), TEXT("SoundWave'/Game/Sound/Foot_Mud_Run02.Foot_Mud_Run02'"));
+		*/
+
+		USoundBase* pSoundBase = nullptr;
+
+		if (TEXT("PMT_Grass") == strSoundName)
+			pSoundBase = m_pSound[0];
+		else if (TEXT("PMT_GrassL") == strSoundName)
+			pSoundBase = m_pSound[1];
+		else if (TEXT("PMT_Desert") == strSoundName)
+			pSoundBase = m_pSound[2];
+		else if (TEXT("PMT_DesertL") == strSoundName)
+			pSoundBase = m_pSound[3];
+
+		//USoundBase* pSoundBase = m_pMaterialSound->Find_Sound(strSoundName);
+
+		if (IsValid(pSoundBase))
+		{
+			// Sound
+			//FActorSpawnParameters tSpawnParams;
+
+			//tSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+			//AEffectSound* pSound = GetWorld()->SpawnActor<AEffectSound>(result.ImpactPoint, result.ImpactNormal.Rotation(), tSpawnParams);
+
+			//pSound->SetAudio(pSoundBase);
+
+			//pSound->SetVolume(0.25f);
+
+			//pSound->Play();
+
+			//LOGW("Foot Sound Play : %d", ++cnt);
+
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), pSoundBase, result.ImpactPoint, 0.25f);
+		}
+		else
+		{
+			int a = 0;
+		}
+	}
+}
+
 void UPlayerAnimInstance::AnimNotify_AttackEnable()
 {
 	m_pPlayer->Reset_AttackInfo();
@@ -210,8 +299,13 @@ void UPlayerAnimInstance::AnimNotify_CollisionCheck()
 					pSound->LoadAudio(TEXT("SoundWave'/Game/Sound/Hit_SwordReboundForcefield.Hit_SwordReboundForcefield'"));
 					break;
 				default:
-					pSound->LoadAudio(TEXT("SoundWave'/Game/Sound/Hit_SwordStabEarth_Rumble1.Hit_SwordStabEarth_Rumble1'"));
+					pSound->LoadAudio(TEXT("SoundWave'/Game/Sound/Hit_SwordStabEarth_Rumble3.Hit_SwordStabEarth_Rumble3'"));
 					break;
+				}
+
+				if (m_strSkill_Q == m_strCurrentAnimType)
+				{
+					pSound->LoadAudio(TEXT("SoundWave'/Game/Sound/QHit.QHit'"));
 				}
 
 				pSound->Play();
@@ -261,4 +355,14 @@ void UPlayerAnimInstance::AnimNotify_CreateFrozenDecal()
 void UPlayerAnimInstance::AnimNotify_IceSpike()
 {
 	m_pPlayer->SkillE_SpikeCircle();
+}
+
+void UPlayerAnimInstance::AnimNotify_PlayFootSound()
+{
+	PlayFootSound(TEXT("Foot_R"), true);
+}
+
+void UPlayerAnimInstance::AnimNotify_PlayFootSound_L()
+{
+	PlayFootSound(TEXT("Foot_L"), false);
 }

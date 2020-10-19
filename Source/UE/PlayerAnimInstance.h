@@ -17,6 +17,7 @@ public:
 
 	void Set_RunType(ERunType eRunType) { m_eRunType = eRunType; }
 	void Add_Yaw(float fDirection);
+	void PlayFootSound(const FName& strName, bool isRight);
 
 protected:
 	virtual void NativeInitializeAnimation();
@@ -58,9 +59,20 @@ protected:
 
 	UFUNCTION()
 		void AnimNotify_IceSpike();
+	
+	UFUNCTION()
+		void AnimNotify_PlayFootSound();
+
+	UFUNCTION()
+		void AnimNotify_PlayFootSound_L();
 
 protected:
 	class APlayerCharacter* m_pPlayer;
+
+	class UMaterialSound* m_pMaterialSound;
+
+	//Temp
+	USoundBase* m_pSound[4];
 
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		FString m_strIdle;

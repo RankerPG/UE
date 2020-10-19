@@ -23,6 +23,19 @@ void AEffectSound::Tick(float DeltaTime)
 
 }
 
+void AEffectSound::SetAudio(USoundBase* pSoundBase)
+{
+	if (IsValid(pSoundBase))
+	{
+		m_pAudio->SetSound(pSoundBase);
+	}
+}
+
+void AEffectSound::SetVolume(float fVolume)
+{
+	m_pAudio->SetVolumeMultiplier(fVolume);
+}
+
 void AEffectSound::LoadAudio(const FString& strPath)
 {
 	USoundWave* pSound = LoadObject<USoundWave>(nullptr, *strPath);

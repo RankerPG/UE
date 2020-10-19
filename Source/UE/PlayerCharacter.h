@@ -22,6 +22,8 @@ public:
 	void Set_Frozen(float fFrozenTime);
 	void Set_Stun(float fStunTime);
 	void Update_HP(float fScale);
+	void Update_MP(float fScale);
+	void Recover_MP();
 	void Reset_AttackInfo();
 
 protected:
@@ -90,6 +92,8 @@ private:
 	class UPlayerAnimInstance* m_pAnim;
 
 	TSubclassOf<class AIceSpike> m_pSpike;
+
+	FTimerHandle m_RecoverMPHandle;
 
 	bool m_isEvading;
 

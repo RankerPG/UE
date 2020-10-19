@@ -32,13 +32,13 @@ void UBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 	bool bCollision = GetWorld()->OverlapMultiByChannel(arrResult, pMonster->GetActorLocation(),
 		FQuat::Identity, (ECollisionChannel)CollisionMonsterDetect, FCollisionShape::MakeSphere(fTraceRange), tParams);
 
-#if ENABLE_DRAW_DEBUG
-
-	FColor DrawColor = bCollision ? FColor::Red : FColor::Blue;
-
-	DrawDebugSphere(GetWorld(), pMonster->GetActorLocation(), fTraceRange, 10, DrawColor, false, 1.f);
-
-#endif
+//#if ENABLE_DRAW_DEBUG
+//
+//	FColor DrawColor = bCollision ? FColor::Red : FColor::Blue;
+//
+//	DrawDebugSphere(GetWorld(), pMonster->GetActorLocation(), fTraceRange, 10, DrawColor, false, 1.f);
+//
+//#endif
 
 	if (bCollision)
 	{

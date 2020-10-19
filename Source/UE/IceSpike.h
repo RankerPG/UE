@@ -25,6 +25,7 @@ public:
 private:
 	void Visible_IceSpike();
 	void Destroy_IceSpike();
+	void Setup_Location();
 
 private:
 	UPROPERTY(category = Mesh, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))

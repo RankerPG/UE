@@ -19,6 +19,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
+	void SetAudio(USoundBase* pSoundBase);
+	void SetVolume(float fVolume);
 	void LoadAudio(const FString& strPath);
 	void Play();
 	void Stop();

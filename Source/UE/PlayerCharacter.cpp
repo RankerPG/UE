@@ -39,7 +39,6 @@ APlayerCharacter::APlayerCharacter()
 	m_pSpringArm->TargetArmLength = 700.f;
 	m_pSpringArm->TargetOffset.Z = 70.f;
 	m_pSpringArm->SetRelativeRotation(FRotator(-20.f, 0.f, 0.f));
-	m_pSpringArm->bDoCollisionTest = false;
 
 	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->MaxWalkSpeed = 3000.f;
@@ -106,6 +105,22 @@ void APlayerCharacter::Update_HP(float fScale)
 	Cast<UCharacterInfoHUDWidget>(m_pCharacterInfoHUDWidget->GetUserWidgetObject())->Set_HPBar(m_fHP / m_fHPMax);
 }
 
+void APlayerCharacter::Update_MP(float fScale)
+{
+	m_fMP += fScale;
+
+	m_fMP = m_fMP < m_fMPMax ? m_fMP : m_fMPMax;
+
+	AUEGameModeBase* pGameMode = Cast<AUEGameModeBase>(GetWorld()->GetAuthGameMode());
+
+	pGameMode->Get_MainWidget()->Set_MPBar(m_fMP / m_fMPMax);
+}
+
+void APlayerCharacter::Recover_MP()
+{
+	Update_MP(10.f);
+}
+
 void APlayerCharacter::Reset_AttackInfo()
 {
 	m_isAttacking = false;
@@ -121,6 +136,7 @@ void APlayerCharacter::BeginPlay()
 
 	UUEGameInstance* pInstance = Cast<UUEGameInstance>(GetGameInstance());
 	FSaveCharacterInfo* pInfo = pInstance->Get_CharacterInfo();
+	pInstance->Set_Player(this);
 
 	m_strName = TEXT("Aurora");
 	m_eJob = pInfo->Job;
@@ -140,11 +156,29 @@ void APlayerCharacter::BeginPlay()
 	m_fSkillRDamagePoint = 100.f;
 
 	Cast<UCharacterInfoHUDWidget>(m_pCharacterInfoHUDWidget->GetUserWidgetObject())->Set_Name(m_strName);
+
+	GetWorld()->GetTimerManager().SetTimer(m_RecoverMPHandle, this, &APlayerCharacter::Recover_MP, 1.f, true);
 }
 
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	//FVector vCameraLoc = m_pCamera->GetRelativeLocation();
+	//FVector vUILoc = m_pCharacterInfoHUDWidget->GetRelativeLocation();
+
+	//FVector vDir = vCameraLoc - vUILoc;
+	//vDir.Normalize();
+
+	//LOGW("%f, %f, %f", vDir.X, vDir.Y, vDir.Z);
+
+	//FMatrix mRot = FRotationMatrix::MakeFromX(vDir);
+
+	//FVector vLoc = m_pCharacterInfoHUDWidget->GetRelativeLocation();
+
+	//m_pCharacterInfoHUDWidget->SetWorldRotation(mRot.ToQuat());
+
+	//m_pCharacterInfoHUDWidget->SetRelativeLocation(vLoc);
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -198,7 +232,7 @@ float APlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const
 
 	FString str = FString::Printf(TEXT("hp : %f"), m_fHP);
 
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, str);
+	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, str);
 
 	return fDamage;
 }
@@ -303,12 +337,22 @@ void APlayerCharacter::Action_Skill_Q()
 	if (TEXT("SKill_Q") == m_pAnim->Get_AnimType())
 		return;
 
+	if (20.f > m_fMP)
+		return;
+
+	Update_MP(-20.f);
+
 	m_pAnim->Set_AnimType(TEXT("Skill_Q"));
 }
 void APlayerCharacter::Action_Skill_E()
 {
 	if (TEXT("SKill_E") == m_pAnim->Get_AnimType())
 		return;
+
+	if (20.f > m_fMP)
+		return;
+
+	Update_MP(-20.f);
 
 	m_pAnim->Set_AnimType(TEXT("Skill_E"));
 }
@@ -317,6 +361,11 @@ void APlayerCharacter::Action_Skill_R()
 {
 	if (TEXT("SKill_R") == m_pAnim->Get_AnimType())
 		return;
+
+	if (50.f > m_fMP)
+		return;
+
+	Update_MP(-50.f);
 
 	m_pAnim->Set_AnimType(TEXT("Skill_R"));
 }
@@ -328,6 +377,11 @@ void APlayerCharacter::Action_Evade()
 	if (TEXT("Skill_Q") == strType || TEXT("Evade") == strType || TEXT("Jump") == strType 
 		|| ECharacterState::Running != m_pAnim->Get_State())
 		return;
+
+	if (10.f > m_fMP)
+		return;
+
+	Update_MP(-10.f);
 
 	m_pAnim->Set_AnimType(TEXT("Evade"));
 
@@ -388,20 +442,20 @@ bool APlayerCharacter::CollisionCheck(TArray<FHitResult>& resultOut)
 	bool bCollision = GetWorld()->SweepMultiByChannel(resultOut, vLoc, vLoc, rot.Quaternion()
 		, (ECollisionChannel)CollisionPlayerAttack, FCollisionShape::MakeBox(vBox), tParams);
 
-#if ENABLE_DRAW_DEBUG
-
-	FVector vCenter = vLoc;
-
-	FColor DrawColor = bCollision ? FColor::Red : FColor::Green;
-
-	DrawDebugBox(GetWorld(), vCenter, vBox, DrawColor, false, 2.f);
-#endif
+//#if ENABLE_DRAW_DEBUG
+//
+//	FVector vCenter = vLoc;
+//
+//	FColor DrawColor = bCollision ? FColor::Red : FColor::Green;
+//
+//	DrawDebugBox(GetWorld(), vCenter, vBox, DrawColor, false, 2.f);
+//#endif
 
 	if (true == bCollision)
 	{
 		FDamageEvent tEvent;
 
-		LOGW("CollCnt : %d", resultOut.Num());
+		//LOGW("CollCnt : %d", resultOut.Num());
 
 		for (auto& result : resultOut)
 		{
@@ -416,8 +470,7 @@ bool APlayerCharacter::CollisionCheck(TArray<FHitResult>& resultOut)
 			// 더 많아지면 switch로 변경
 			if (1 == iAttackType) // Skill_E
 			{
-				HitEffect->Load_Particle(TEXT("ParticleSystem'/Game/AdvancedMagicFX12/particles/P_ky_hit_ice.P_ky_hit_ice'"));
-				pMonster->Set_Frozen(3.f);
+
 			}
 			else if (2 == iAttackType) // Skill_Q
 			{
@@ -601,7 +654,7 @@ void APlayerCharacter::SkillE_SpikeCircle()
 
 	AEffectSound* pSound = GetWorld()->SpawnActor<AEffectSound>(GetActorLocation(), GetActorRotation(), tSpawnParams);
 
-	pSound->LoadAudio(TEXT("SoundWave'/Game/Sound/Destroy_SkillE.Destroy_SkillE'"));
+	pSound->LoadAudio(TEXT("SoundWave'/Game/Sound/Create_SkillE.Create_SkillE'"));
 
 	pSound->Play();
 

@@ -135,6 +135,9 @@ public:
 
 public:
 	FSaveCharacterInfo* Get_CharacterInfo() const { return pCharacterInfo; }
+	AActor* Get_Player() const { return pPlayer; }
+
+	void Set_Player(AActor* player) { pPlayer = player; }
 
 	UFUNCTION(BlueprintCallable)
 	void Set_CharacterInfo(const FName& strName)
@@ -167,4 +170,6 @@ private:
 		UDataTable* CharacterInfoTable;
 
 	FSaveCharacterInfo* pCharacterInfo;
+
+	AActor* pPlayer;
 };

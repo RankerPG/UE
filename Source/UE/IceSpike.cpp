@@ -32,6 +32,8 @@ AIceSpike::AIceSpike()
 void AIceSpike::Set_VisibleTime(float fTime)
 {
 	GetWorld()->GetTimerManager().SetTimer(VisibleTimerHandle, this, &AIceSpike::Visible_IceSpike, fTime, false);
+
+	Setup_Location();
 }
 
 void AIceSpike::BeginPlay()
@@ -82,4 +84,25 @@ void AIceSpike::Destroy_IceSpike()
 	}
 
 	GetWorld()->DestroyActor(this);
+}
+
+void AIceSpike::Setup_Location()
+{
+	TArray<AActor*> ignoreActor;
+
+	FVector vStart = GetActorLocation() - FVector::UpVector * 1000.f;
+
+	FVector vEnd = vStart + FVector::UpVector * 2000.f;
+
+	FHitResult result;
+
+	bool isResult = UKismetSystemLibrary::LineTraceSingle(GetWorld(), vStart, vEnd, UEngineTypes::ConvertToTraceType(ECC_WorldStatic), false,
+		ignoreActor, EDrawDebugTrace::None, result, true);
+
+	if (true == isResult)
+	{
+		FVector hitLoc = result.ImpactPoint;
+
+		SetActorLocation(hitLoc);
+	}
 }

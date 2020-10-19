@@ -9,6 +9,7 @@
 #include "CharacterInfoHUDWidget.h"
 #include "SkillEffect.h"
 #include "EffectSound.h"
+#include "UEGameInstance.h"
 
 AMonster::AMonster()
 {
@@ -121,6 +122,17 @@ void AMonster::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void AMonster::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	FVector vLoc = Cast<UUEGameInstance>(GetGameInstance())->Get_Player()->GetActorLocation();
+
+	if (2000.f < FVector::Distance(GetActorLocation(), vLoc))
+	{
+		m_pMonsterInfoHUDWidget->SetVisibility(false);
+	}
+	else
+	{
+		m_pMonsterInfoHUDWidget->SetVisibility(true);
+	}
 }
 
 void AMonster::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -227,16 +239,16 @@ bool AMonster::CollisionCheck(FHitResult& resultOut)
 	bool bCollision = GetWorld()->SweepSingleByChannel(resultOut, vLoc, vLoc + vForward * m_fAttackRange,
 		FQuat::Identity, (ECollisionChannel)CollisionMonsterAttack, FCollisionShape::MakeSphere(50.f), tParam);
 
-#if ENABLE_DRAW_DEBUG
-
-	FVector vCenter = vLoc + vForward * (m_fAttackRange / 2.f);
-
-	FColor DrawColor = bCollision ? FColor::Red : FColor::Green;
-
-	DrawDebugCapsule(GetWorld(), vCenter, m_fAttackRange / 2.f, 50.f, FRotationMatrix::MakeFromZ(vForward).ToQuat()
-		, DrawColor, false, 0.5f);
-
-#endif
+//#if ENABLE_DRAW_DEBUG
+//
+//	FVector vCenter = vLoc + vForward * (m_fAttackRange / 2.f);
+//
+//	FColor DrawColor = bCollision ? FColor::Red : FColor::Green;
+//
+//	DrawDebugCapsule(GetWorld(), vCenter, m_fAttackRange / 2.f, 50.f, FRotationMatrix::MakeFromZ(vForward).ToQuat()
+//		, DrawColor, false, 0.5f);
+//
+//#endif
 
 	if (bCollision)
 	{
