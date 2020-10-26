@@ -71,9 +71,6 @@ protected:
 
 	class UMaterialSound* m_pMaterialSound;
 
-	//Temp
-	USoundBase* m_pSound[4];
-
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		FString m_strIdle;
 

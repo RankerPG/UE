@@ -1,6 +1,7 @@
 #include "IceSpike.h"
 #include "SkillEffect.h"
 #include "EffectSound.h"
+#include "Monster.h"
 
 AIceSpike::AIceSpike()
 {
@@ -41,6 +42,8 @@ void AIceSpike::BeginPlay()
 	Super::BeginPlay();
 
 	m_pMesh->SetVisibility(false);
+
+	m_pCapsule->OnComponentHit.AddDynamic(this, &AIceSpike::ComponentHit);
 }
 
 void AIceSpike::Tick(float DeltaTime)
@@ -104,5 +107,21 @@ void AIceSpike::Setup_Location()
 		FVector hitLoc = result.ImpactPoint;
 
 		SetActorLocation(hitLoc);
+	}
+}
+
+void AIceSpike::ComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (IsValid(Cast<AMonster>(OtherActor)))
+	{
+		AMonster* pMonster = Cast<AMonster>(OtherActor);
+
+		pMonster->Set_Frozen(3.f);
+
+		FDamageEvent damageEvent;
+
+		pMonster->TakeDamage(20.f, damageEvent, nullptr, this);
+
+		GetWorld()->DestroyActor(this);
 	}
 }

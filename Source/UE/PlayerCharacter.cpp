@@ -100,9 +100,11 @@ void APlayerCharacter::Update_HP(float fScale)
 
 	AUEGameModeBase* pGameMode = Cast<AUEGameModeBase>(GetWorld()->GetAuthGameMode());
 
-	pGameMode->Get_MainWidget()->Set_HPBar(m_fHP / m_fHPMax);
+	float fSetHP = m_fHP <= 0.f ? 0.f : m_fHP / m_fHPMax;
 
-	Cast<UCharacterInfoHUDWidget>(m_pCharacterInfoHUDWidget->GetUserWidgetObject())->Set_HPBar(m_fHP / m_fHPMax);
+	pGameMode->Get_MainWidget()->Set_HPBar(fSetHP);
+
+	Cast<UCharacterInfoHUDWidget>(m_pCharacterInfoHUDWidget->GetUserWidgetObject())->Set_HPBar(fSetHP);
 }
 
 void APlayerCharacter::Update_MP(float fScale)
@@ -340,7 +342,7 @@ void APlayerCharacter::Action_Skill_Q()
 	if (20.f > m_fMP)
 		return;
 
-	Update_MP(-20.f);
+	//Update_MP(-20.f);
 
 	m_pAnim->Set_AnimType(TEXT("Skill_Q"));
 }
@@ -352,7 +354,7 @@ void APlayerCharacter::Action_Skill_E()
 	if (20.f > m_fMP)
 		return;
 
-	Update_MP(-20.f);
+	//Update_MP(-20.f);
 
 	m_pAnim->Set_AnimType(TEXT("Skill_E"));
 }
@@ -365,7 +367,7 @@ void APlayerCharacter::Action_Skill_R()
 	if (50.f > m_fMP)
 		return;
 
-	Update_MP(-50.f);
+	//Update_MP(-50.f);
 
 	m_pAnim->Set_AnimType(TEXT("Skill_R"));
 }
@@ -678,7 +680,7 @@ void APlayerCharacter::SkillE_SpikeCircle()
 
 		pIceSpike->SetActorLocationAndRotation(vLoc + vRotFoward, GetActorRotation() + rot);
 
-		pIceSpike->Set_VisibleTime(0.02f * i);
+		pIceSpike->Set_VisibleTime(0.02f * (i + 1));
 
 		if (1 == i)
 		{

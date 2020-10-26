@@ -153,8 +153,8 @@ void AMonster::PossessedBy(AController* NewController)
 		m_fAttackDelay = info->AttackDelay;
 		m_fAttackPoint = info->AttackPoint;
 		m_fArmorPoint = info->ArmorPoint;
-		m_fHP = m_fMaxHP = info->HP;
-		m_fMP = m_fMaxMP = info->MP;
+		m_fHP = m_fHPMax = info->HP;
+		m_fMP = m_fMPMax = info->MP;
 		m_iLevel = info->Level;
 		m_iExp = info->Exp;
 		m_iGold = info->Gold;
@@ -183,7 +183,10 @@ float AMonster::TakeDamage(float DamageAmount, struct FDamageEvent const& Damage
 			m_iFontIndex = (++m_iFontIndex) % 20;
 		}
 
-		Cast<UCharacterInfoHUDWidget>(m_pMonsterInfoHUDWidget->GetUserWidgetObject())->Set_HPBar(m_fHP / m_fMaxHP);
+		float fSetHP = m_fHP <= 0.f ? 0.f : m_fHP / m_fHPMax;
+
+		if(IsValid(m_pMonsterInfoHUDWidget))
+			Cast<UCharacterInfoHUDWidget>(m_pMonsterInfoHUDWidget->GetUserWidgetObject())->Set_HPBar(fSetHP);
 
 		if (m_fHP > 0.f)
 		{

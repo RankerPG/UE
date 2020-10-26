@@ -25,7 +25,8 @@ public:
 	int32 Get_PatrolNum() { return m_iPatrolNum; }
 	float Get_TraceRange() { return m_fTraceRange; }
 	float Get_AttackRange() { return m_fAttackRange; }
-	float Get_HP() { return m_fHP; }
+	UFUNCTION(BlueprintCallable)
+		float Get_HP() { return m_fHP; }
 	bool Get_AttackEnable() { return m_isAttackEnable; }
 	bool Get_PatrolEnable() { return m_isPatrolEnable; }
 
@@ -129,13 +130,13 @@ protected: // status
 		float m_fHP;
 
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-		float m_fMaxHP;
+		float m_fHPMax;
 
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		float m_fMP;
 
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-		float m_fMaxMP;
+		float m_fMPMax;
 
 	UPROPERTY(category = Status, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		int m_iLevel;

@@ -52,15 +52,10 @@ void UPlayerAnimInstance::NativeInitializeAnimation()
 
 	m_pMaterialSound = NewObject<UMaterialSound>(this, TEXT("MaterialSound"));
 
-	m_pSound[0] = LoadObject<USoundBase>(nullptr, TEXT("SoundWave'/Game/Sound/Foot_Glass_HeelsRun24.Foot_Glass_HeelsRun24'"));
-	m_pSound[1] = LoadObject<USoundBase>(nullptr, TEXT("SoundWave'/Game/Sound/Foot_Glass_HeelsRun25.Foot_Glass_HeelsRun25'"));
-	m_pSound[2] = LoadObject<USoundBase>(nullptr, TEXT("SoundWave'/Game/Sound/Foot_Mud_Run01.Foot_Mud_Run01'"));
-	m_pSound[3] = LoadObject<USoundBase>(nullptr, TEXT("SoundWave'/Game/Sound/Foot_Mud_Run02.Foot_Mud_Run02'"));
-
-	//m_pMaterialSound->Load_Sound(TEXT("PMT_Grass"), TEXT("SoundWave'/Game/Sound/Foot_Glass_HeelsRun24.Foot_Glass_HeelsRun24'"));
-	//m_pMaterialSound->Load_Sound(TEXT("PMT_GrassL"), TEXT("SoundWave'/Game/Sound/Foot_Glass_HeelsRun25.Foot_Glass_HeelsRun25'"));
-	//m_pMaterialSound->Load_Sound(TEXT("PMT_Desert"), TEXT("SoundWave'/Game/Sound/Foot_Mud_Run01.Foot_Mud_Run01'"));
-	//m_pMaterialSound->Load_Sound(TEXT("PMT_DesertL"), TEXT("SoundWave'/Game/Sound/Foot_Mud_Run02.Foot_Mud_Run02'"));
+	m_pMaterialSound->Load_Sound(TEXT("PMT_Grass"), TEXT("SoundWave'/Game/Sound/Foot_Glass_HeelsRun24.Foot_Glass_HeelsRun24'"));
+	m_pMaterialSound->Load_Sound(TEXT("PMT_GrassL"), TEXT("SoundWave'/Game/Sound/Foot_Glass_HeelsRun25.Foot_Glass_HeelsRun25'"));
+	m_pMaterialSound->Load_Sound(TEXT("PMT_Desert"), TEXT("SoundWave'/Game/Sound/Foot_Mud_Run01.Foot_Mud_Run01'"));
+	m_pMaterialSound->Load_Sound(TEXT("PMT_DesertL"), TEXT("SoundWave'/Game/Sound/Foot_Mud_Run02.Foot_Mud_Run02'"));
 }
 
 void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
@@ -113,11 +108,7 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		}
 		else
 		{
-			if (m_strArray[(int)EPlayerAnimType::Jump] == m_strCurrentAnimType)
-			{
-
-			}
-			else
+			if (m_strArray[(int)EPlayerAnimType::Jump] != m_strCurrentAnimType)
 			{
 				if (0.f < m_fSpeed)
 				{
@@ -188,48 +179,12 @@ void UPlayerAnimInstance::PlayFootSound(const FName& strName, bool isRight)
 			strSoundName += TEXT("L");
 
 		LOGW("%s", *strSoundName);
-		/*
-		//m_pMaterialSound->Load_Sound(TEXT("PMT_Grass"), TEXT("SoundWave'/Game/Sound/Foot_Glass_HeelsRun24.Foot_Glass_HeelsRun24'"));
-		//m_pMaterialSound->Load_Sound(TEXT("PMT_GrassL"), TEXT("SoundWave'/Game/Sound/Foot_Glass_HeelsRun25.Foot_Glass_HeelsRun25'"));
-		//m_pMaterialSound->Load_Sound(TEXT("PMT_Desert"), TEXT("SoundWave'/Game/Sound/Foot_Mud_Run01.Foot_Mud_Run01'"));
-		//m_pMaterialSound->Load_Sound(TEXT("PMT_DesertL"), TEXT("SoundWave'/Game/Sound/Foot_Mud_Run02.Foot_Mud_Run02'"));
-		*/
 
-		USoundBase* pSoundBase = nullptr;
-
-		if (TEXT("PMT_Grass") == strSoundName)
-			pSoundBase = m_pSound[0];
-		else if (TEXT("PMT_GrassL") == strSoundName)
-			pSoundBase = m_pSound[1];
-		else if (TEXT("PMT_Desert") == strSoundName)
-			pSoundBase = m_pSound[2];
-		else if (TEXT("PMT_DesertL") == strSoundName)
-			pSoundBase = m_pSound[3];
-
-		//USoundBase* pSoundBase = m_pMaterialSound->Find_Sound(strSoundName);
+		USoundBase* pSoundBase = m_pMaterialSound->Find_Sound(strSoundName);
 
 		if (IsValid(pSoundBase))
 		{
-			// Sound
-			//FActorSpawnParameters tSpawnParams;
-
-			//tSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
-			//AEffectSound* pSound = GetWorld()->SpawnActor<AEffectSound>(result.ImpactPoint, result.ImpactNormal.Rotation(), tSpawnParams);
-
-			//pSound->SetAudio(pSoundBase);
-
-			//pSound->SetVolume(0.25f);
-
-			//pSound->Play();
-
-			//LOGW("Foot Sound Play : %d", ++cnt);
-
 			UGameplayStatics::PlaySoundAtLocation(GetWorld(), pSoundBase, result.ImpactPoint, 0.25f);
-		}
-		else
-		{
-			int a = 0;
 		}
 	}
 }

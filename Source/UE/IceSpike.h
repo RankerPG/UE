@@ -26,6 +26,8 @@ private:
 	void Visible_IceSpike();
 	void Destroy_IceSpike();
 	void Setup_Location();
+	UFUNCTION()
+		void ComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 private:
 	UPROPERTY(category = Mesh, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
