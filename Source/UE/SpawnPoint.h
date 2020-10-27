@@ -20,6 +20,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
+	void CreateMonster();
+
 	UFUNCTION(BluePrintCallable)
 	void SpawnMonster();
 	
@@ -31,6 +33,8 @@ private:
 
 	UPROPERTY(category = Spawn, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	TArray<class APoint*> m_PointArray;
+
+	class AMonster* m_pMonster;
 
 	FTimerHandle m_TimerHandler;
 

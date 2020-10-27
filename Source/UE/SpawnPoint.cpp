@@ -12,7 +12,7 @@ void ASpawnPoint::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SpawnMonster();
+	CreateMonster();
 }
 
 void ASpawnPoint::Tick(float DeltaTime)
@@ -20,7 +20,7 @@ void ASpawnPoint::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void ASpawnPoint::SpawnMonster()
+void ASpawnPoint::CreateMonster()
 {
 	FVector vLoc = GetActorLocation();
 	FRotator vRot = GetActorRotation();
@@ -29,26 +29,40 @@ void ASpawnPoint::SpawnMonster()
 
 	tParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-	AMonster* pMonster = Cast<AMonster>(GetWorld()->SpawnActor(m_MonsterClass, &vLoc, &vRot, tParams));
+	m_pMonster = Cast<AMonster>(GetWorld()->SpawnActor(m_MonsterClass, &vLoc, &vRot, tParams));
 
-	if (IsValid(pMonster))
+	if (IsValid(m_pMonster))
 	{
-		pMonster->m_pSpawnPoint = this;
+		m_pMonster->m_pSpawnPoint = this;
 
 		if (0 < m_PointArray.Num())
 		{
-			pMonster->Add_PatrolPos(GetActorLocation());
-			pMonster->Set_PatrolEnable(true);
+			m_pMonster->Add_PatrolPos(GetActorLocation());
+			m_pMonster->Set_PatrolEnable(true);
 
 			for (APoint* pPoint : m_PointArray)
 			{
-				pMonster->Add_PatrolPos(pPoint->GetActorLocation());
+				m_pMonster->Add_PatrolPos(pPoint->GetActorLocation());
 			}
 		}
 		else
 		{
-			pMonster->Set_PatrolEnable(false);
+			m_pMonster->Set_PatrolEnable(false);
 		}
+	}
+
+	GetWorldTimerManager().ClearTimer(m_TimerHandler);
+}
+
+void ASpawnPoint::SpawnMonster()
+{
+	FVector vLoc = GetActorLocation();
+	FRotator vRot = GetActorRotation();
+
+	if (IsValid(m_pMonster))
+	{
+		m_pMonster->SetActorLocationAndRotation(vLoc, vRot);
+		m_pMonster->SpawnSetting();
 	}
 
 	GetWorldTimerManager().ClearTimer(m_TimerHandler);

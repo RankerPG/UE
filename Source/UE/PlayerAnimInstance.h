@@ -120,7 +120,5 @@ protected:
 	UPROPERTY(category = AnimType, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		bool m_isJumpAttack;
 
-	float m_fBeforeSpeed;
-
 	bool m_isJumpEnable;
 };

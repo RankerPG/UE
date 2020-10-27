@@ -33,8 +33,6 @@ UPlayerAnimInstance::UPlayerAnimInstance()
 
 	m_fSpeed = 0.f;
 
-	m_fBeforeSpeed = 0.f;
-
 	m_isJumpEnable = true;
 
 	m_isFalling = false;
@@ -67,18 +65,9 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		if (ECharacterState::Running != m_pPlayer->Get_State())
 			return;
 
-		m_fBeforeSpeed = m_fSpeed;
-
-		m_isAccelerating = m_fSpeed - m_fBeforeSpeed >= 0.f ? true : false;
-
-		if (0.f == m_fSpeed)
-			m_isAccelerating = false;
-		else if (m_fSpeed - m_fBeforeSpeed >= 0.f)
-			m_isAccelerating = true;
-		else
-			m_isAccelerating = false;
-
 		m_fSpeed = m_pPlayer->GetVelocity().Size();
+
+		m_isAccelerating = 0.f == m_fSpeed ? false : true;
 
 		m_isFalling = m_pPlayer->GetMovementComponent()->IsFalling();
 

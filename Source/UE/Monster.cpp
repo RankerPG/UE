@@ -112,11 +112,6 @@ void AMonster::BeginPlay()
 void AMonster::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
-
-	if (IsValid(m_pSpawnPoint))
-	{
-		m_pSpawnPoint->CallSpawnTimer();
-	}
 }
 
 void AMonster::Tick(float DeltaTime)
@@ -208,9 +203,35 @@ float AMonster::TakeDamage(float DamageAmount, struct FDamageEvent const& Damage
 	return fDamage;
 }
 
+void AMonster::SpawnSetting()
+{
+	LOGW("Call SpawnSetting");
+
+	m_fHP = m_fHPMax;
+
+	Cast<UCharacterInfoHUDWidget>(m_pMonsterInfoHUDWidget->GetUserWidgetObject())->Set_HPBar(1.f);
+
+	m_pAnim->Set_AnimType(TEXT("Idle"));
+
+	m_pMesh->SetVisibility(true);
+
+	Cast<UCharacterInfoHUDWidget>(m_pMonsterInfoHUDWidget->GetUserWidgetObject())->SetVisibility(ESlateVisibility::Visible);
+
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+	m_pMesh->bPauseAnims = false;
+}
+
 void AMonster::DeathEnd()
 {
-	Destroy();
+	m_pMesh->SetVisibility(false);
+
+	Cast<UCharacterInfoHUDWidget>(m_pMonsterInfoHUDWidget->GetUserWidgetObject())->SetVisibility(ESlateVisibility::Hidden);
+
+	if (IsValid(m_pSpawnPoint))
+		m_pSpawnPoint->CallSpawnTimer();
+
+	m_pMesh->bPauseAnims = true;
 }
 
 void AMonster::AttackDelay()

@@ -65,7 +65,8 @@ protected:
 public:
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser);
 
-	virtual void DeathEnd();
+	void SpawnSetting();
+	void DeathEnd();
 
 public:
 	void AttackDelay();
