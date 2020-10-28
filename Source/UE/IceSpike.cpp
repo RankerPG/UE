@@ -25,9 +25,16 @@ AIceSpike::AIceSpike()
 	m_fDestroyTime = 5.f;
 
 	m_pMesh->SetupAttachment(m_pCapsule);
+
 	m_pMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	m_isSoundPlayActor = false;
+}
+
+void AIceSpike::Set_ArrayAndIndex(TArray<AIceSpike*>* pArray, int iIndex)
+{
+	m_pArray = pArray;
+	m_iIndex = iIndex;
 }
 
 void AIceSpike::Set_VisibleTime(float fTime)
@@ -43,6 +50,8 @@ void AIceSpike::BeginPlay()
 
 	m_pMesh->SetVisibility(false);
 
+	m_pCapsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 	m_pCapsule->OnComponentHit.AddDynamic(this, &AIceSpike::ComponentHit);
 }
 
@@ -54,6 +63,8 @@ void AIceSpike::Tick(float DeltaTime)
 void AIceSpike::Visible_IceSpike()
 {
 	m_pMesh->SetVisibility(true);
+
+	m_pCapsule->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
 	GetWorld()->GetTimerManager().SetTimer(VisibleTimerHandle, this, &AIceSpike::Destroy_IceSpike, m_fDestroyTime, false);
 
@@ -84,9 +95,13 @@ void AIceSpike::Destroy_IceSpike()
 		pSound->LoadAudio(TEXT("SoundWave'/Game/Sound/Destroy_SkillE.Destroy_SkillE'"));
 
 		pSound->Play();
+
+		m_isSoundPlayActor = false;
 	}
 
-	GetWorld()->DestroyActor(this);
+	m_pCapsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	m_pMesh->SetVisibility(false);
 }
 
 void AIceSpike::Setup_Location()
@@ -122,6 +137,11 @@ void AIceSpike::ComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherAct
 
 		pMonster->TakeDamage(20.f, damageEvent, nullptr, this);
 
-		GetWorld()->DestroyActor(this);
+		if (true == m_isSoundPlayActor) // 충돌로 인해 비활성화되는 객체가 사운드 출력 객체라면 다음 인덱스 객체에 넘긴다.
+			(*m_pArray)[m_iIndex + 1]->Set_SoundPlayActor(true);
+
+		m_isSoundPlayActor = true;
+
+		Destroy_IceSpike();
 	}
 }

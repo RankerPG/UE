@@ -60,10 +60,12 @@ APlayerCharacter::APlayerCharacter()
 
 	if (SpikeClass.Succeeded())
 	{
-		m_pSpike = SpikeClass.Class;
+		m_pIceSpikeClass = SpikeClass.Class;
 	}
 
 	m_iAttackCombo = 0;
+
+	m_iSpikeArrayIndex = 0;
 
 	m_isAttacking = false;
 
@@ -159,28 +161,29 @@ void APlayerCharacter::BeginPlay()
 
 	Cast<UCharacterInfoHUDWidget>(m_pCharacterInfoHUDWidget->GetUserWidgetObject())->Set_Name(m_strName);
 
+	m_pCharacterInfoHUDWidget->SetVisibility(false);
+
 	GetWorld()->GetTimerManager().SetTimer(m_RecoverMPHandle, this, &APlayerCharacter::Recover_MP, 1.f, true);
+
+	// IceSpike Memory pool
+	FActorSpawnParameters params;
+	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	for (int i = 0; i < 100; ++i)
+	{
+		AIceSpike* pSpike = GetWorld()->SpawnActor<AIceSpike>(m_pIceSpikeClass, params);
+
+		pSpike->SetActorScale3D(FVector(2.f, 2.f, 2.f));
+
+		pSpike->Set_ArrayAndIndex(&m_IceSpikeArray, i);
+
+		m_IceSpikeArray.Add(pSpike);
+	}
 }
 
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	//FVector vCameraLoc = m_pCamera->GetRelativeLocation();
-	//FVector vUILoc = m_pCharacterInfoHUDWidget->GetRelativeLocation();
-
-	//FVector vDir = vCameraLoc - vUILoc;
-	//vDir.Normalize();
-
-	//LOGW("%f, %f, %f", vDir.X, vDir.Y, vDir.Z);
-
-	//FMatrix mRot = FRotationMatrix::MakeFromX(vDir);
-
-	//FVector vLoc = m_pCharacterInfoHUDWidget->GetRelativeLocation();
-
-	//m_pCharacterInfoHUDWidget->SetWorldRotation(mRot.ToQuat());
-
-	//m_pCharacterInfoHUDWidget->SetRelativeLocation(vLoc);
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -230,7 +233,7 @@ float APlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const
 	fDamage = fDamage - m_fArmorPoint;
 	fDamage = fDamage > 0.f ? fDamage : 1.f;
 
-	Update_HP(-fDamage);
+	//Update_HP(-fDamage);
 
 	FString str = FString::Printf(TEXT("hp : %f"), m_fHP);
 
@@ -501,14 +504,14 @@ bool APlayerCharacter::CollisionCheck_Sphere(TArray<FHitResult>& resultOut)
 	bool bCollision = GetWorld()->SweepMultiByChannel(resultOut, vLoc, vLoc, rot.Quaternion()
 		, (ECollisionChannel)CollisionPlayerAttack, FCollisionShape::MakeSphere(2000.f), tParams);
 
-#if ENABLE_DRAW_DEBUG
-
-	FVector vCenter = vLoc;
-
-	FColor DrawColor = bCollision ? FColor::Red : FColor::Green;
-
-	DrawDebugSphere(GetWorld(), vCenter, 2000.f, 10, DrawColor, false, 1.f);
-#endif
+//#if ENABLE_DRAW_DEBUG
+//
+//	FVector vCenter = vLoc;
+//
+//	FColor DrawColor = bCollision ? FColor::Red : FColor::Green;
+//
+//	DrawDebugSphere(GetWorld(), vCenter, 2000.f, 10, DrawColor, false, 1.f);
+//#endif
 
 	if (true == bCollision)
 	{
@@ -578,7 +581,7 @@ bool APlayerCharacter::CollisionCheck_Knockback(TArray<FHitResult>& resultOut)
 
 	if (true == bCollision)
 	{
-		for (auto result : resultOut)
+		for (auto& result : resultOut)
 		{
 			AMonster* pMonster = Cast<AMonster>(result.GetActor());
 
@@ -647,8 +650,6 @@ void APlayerCharacter::SkillE_SpikeCircle()
 
 	float fAngle = 360.f / 20.f;
 
-	bool isPlaySound = false;
-
 	//Sound
 	FActorSpawnParameters tSpawnParams;
 
@@ -659,18 +660,13 @@ void APlayerCharacter::SkillE_SpikeCircle()
 	pSound->LoadAudio(TEXT("SoundWave'/Game/Sound/Create_SkillE.Create_SkillE'"));
 
 	pSound->Play();
+	
+	m_IceSpikeArray[m_iSpikeArrayIndex]->Set_SoundPlayActor(true);
 
+	FRotator vRot = GetActorRotation();
 
 	for (int i = 0; i < 21; ++i)
 	{
-		FActorSpawnParameters params;
-
-		params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
-		AIceSpike* pIceSpike = GetWorld()->SpawnActor<AIceSpike>(m_pSpike, params);
-
-		pIceSpike->SetActorScale3D(FVector(2.f, 2.f, 2.f));
-
 		FRotator rot(0.f, -135.f + fAngle * i, 0.f);
 
 		FVector vRotFoward = rot.RotateVector(vFoward);
@@ -678,15 +674,11 @@ void APlayerCharacter::SkillE_SpikeCircle()
 		rot.Pitch = 45.f;
 		rot.Yaw += 90.f;
 
-		pIceSpike->SetActorLocationAndRotation(vLoc + vRotFoward, GetActorRotation() + rot);
+		m_IceSpikeArray[m_iSpikeArrayIndex]->SetActorLocationAndRotation(vLoc + vRotFoward, vRot + rot);
 
-		pIceSpike->Set_VisibleTime(0.02f * (i + 1));
+		m_IceSpikeArray[m_iSpikeArrayIndex]->Set_VisibleTime(0.02f * (i + 1));
 
-		if (1 == i)
-		{
-			isPlaySound = true;
-			pIceSpike->Set_SoundPlayActor(true);
-		}
+		m_iSpikeArrayIndex = (m_iSpikeArrayIndex + 1) % 100;
 	}
 }
 

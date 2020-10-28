@@ -13,6 +13,7 @@ public:
 	AIceSpike();
 
 public:
+	void Set_ArrayAndIndex(TArray<AIceSpike*>* pArray, int iIndex);
 	void Set_VisibleTime(float fTime);
 	void Set_SoundPlayActor(bool isSoundPlay) { m_isSoundPlayActor = isSoundPlay; }
 
@@ -35,6 +36,9 @@ private:
 
 	UPROPERTY(category = Capsule, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	UCapsuleComponent* m_pCapsule;
+
+	TArray<AIceSpike*>* m_pArray;
+	int m_iIndex;
 
 	FTimerHandle VisibleTimerHandle;
 	FTimerHandle DestroyTimerHandle;

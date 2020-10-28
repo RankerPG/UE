@@ -91,7 +91,11 @@ private:
 
 	class UPlayerAnimInstance* m_pAnim;
 
-	TSubclassOf<class AIceSpike> m_pSpike;
+	UClass* m_pIceSpikeClass;
+
+	TArray<class AIceSpike*> m_IceSpikeArray;
+
+	int m_iSpikeArrayIndex;
 
 	FTimerHandle m_RecoverMPHandle;
 

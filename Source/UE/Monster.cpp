@@ -118,16 +118,18 @@ void AMonster::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	FVector vLoc = Cast<UUEGameInstance>(GetGameInstance())->Get_Player()->GetActorLocation();
+	m_pMonsterInfoHUDWidget->SetVisibility(false);
 
-	if (2000.f < FVector::Distance(GetActorLocation(), vLoc))
-	{
-		m_pMonsterInfoHUDWidget->SetVisibility(false);
-	}
-	else
-	{
-		m_pMonsterInfoHUDWidget->SetVisibility(true);
-	}
+	//FVector vLoc = Cast<UUEGameInstance>(GetGameInstance())->Get_Player()->GetActorLocation();
+
+	//if (2000.f < FVector::Distance(GetActorLocation(), vLoc))
+	//{
+	//	m_pMonsterInfoHUDWidget->SetVisibility(false);
+	//}
+	//else
+	//{
+	//	m_pMonsterInfoHUDWidget->SetVisibility(true);
+	//}
 }
 
 void AMonster::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -180,8 +182,8 @@ float AMonster::TakeDamage(float DamageAmount, struct FDamageEvent const& Damage
 
 		float fSetHP = m_fHP <= 0.f ? 0.f : m_fHP / m_fHPMax;
 
-		if(IsValid(m_pMonsterInfoHUDWidget))
-			Cast<UCharacterInfoHUDWidget>(m_pMonsterInfoHUDWidget->GetUserWidgetObject())->Set_HPBar(fSetHP);
+		////if(IsValid(m_pMonsterInfoHUDWidget))
+		////	Cast<UCharacterInfoHUDWidget>(m_pMonsterInfoHUDWidget->GetUserWidgetObject())->Set_HPBar(fSetHP);
 
 		if (m_fHP > 0.f)
 		{
